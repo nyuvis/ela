@@ -1,0 +1,49 @@
+version: '3'
+
+services: 
+  api:
+    container_name: node-api
+    build:  # it will look for Dockerfile in current directory to build the image
+      context: ./server
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000" # Expose API port
+    restart: on-failure
+    volumes:
+      - /app/node_modules # Inside the container, don't try to override this folder, just leave as is
+      - ./server:/app # Look at the server directory and copy everything into the app folder in the container
+    environment: # Set ENV vars
+     - NODE_ENV=local
+     - ES_HOST=elasticsearch
+     - PORT=3000
+
+  web-app:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /app/node_modules
+      - ./client:/app
+    ports:
+      - '8080:8080'
+    restart: on-failure
+    container_name: web-app
+    environment: # Set ENV vars
+     - PORT=8080
+  
+  elasticsearch: # Elasticsearch Instance
+    container_name: es-search
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.1.1
+    volumes: # Persist ES data in seperate "esdata" volume
+      - esdata:/usr/share/elasticsearch/data
+    environment:
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+    ports: # Expose ElasticSearch ports
+      - "9300:9300"
+      - "9200:9200"
+
+volumes: 
+  esdata:
+  
