@@ -6,7 +6,7 @@ const SpinnerComponent = ({message}) => {
     <div style={{ 
       display: 'flex',
     justifyContent: 'center',
-    marginTop: '23%'
+    marginTop: '15%'
     }}>
       <Spinner type="grow" color="secondary" /><br />
       <span>{message}</span>
