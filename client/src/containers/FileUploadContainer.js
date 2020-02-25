@@ -4,6 +4,7 @@ import ApiService from './apiService';
 import Toaster from '../components/Toaster';
 import 'react-toastify/dist/ReactToastify.min.css';
 import IndexFileSelectionContainer from './IndexFileSelectionContainer';
+import SpinnerComponent from '../components/Spinner';
 
 class FileUploadContainer extends Component {
 
@@ -12,12 +13,13 @@ class FileUploadContainer extends Component {
     this.state = {
       file: null,
       loaded: false,
-      message: '',
       columnList: [],
       selectedColumn: '',
       columnIndex: '',
-      type: '',
+      message: '',
       index: '',
+      loading: false,
+      loadingStatus: '',
     };
   }
 
@@ -33,9 +35,15 @@ class FileUploadContainer extends Component {
   uploadFile = async () => {
     try {
       if (this.state.loaded) {
+        this.setState({
+          loading: true,
+          loadingStatus: 'Uploading file'
+        })
         const res = await ApiService.fileUpload(this.state.file);
         if (res.status) {
           this.setState({
+            loading: false,
+            loadingStatus: '',
             message: "File Uploaded Successfully"
           })
           setTimeout(() =>{
@@ -54,11 +62,17 @@ class FileUploadContainer extends Component {
   uploadFileToSelectColumn = async () => {
     try {
       if (this.state.loaded) {
+        this.setState({
+          loading: true,
+          loadingStatus: 'Uploading file'
+        })
         const res = await ApiService.fileUploadToSelectColumn(this.state.file);
         if (res.status) {
           this.setState({
             message: "File Uploaded Successfully",
-            columnList: res.headerList
+            columnList: res.headerList,
+            loading: false,
+            loadingStatus: '',
           })
           setTimeout(() =>{
             this.setState({
@@ -82,15 +96,19 @@ class FileUploadContainer extends Component {
 
   buildIndex = async () => {
     try {
-      if (this.state.selectedColumn && this.state.type.length && this.state.index.length) {
+      if (this.state.selectedColumn && this.state.index.length) {
+        this.setState({
+          loading: true,
+          loadingStatus: 'Building Index....'
+        })
         const res = await ApiService.fileUploadToBuildIndex(
           this.state.file.name, 
-          this.state.selectedColumn, 
-          this.state.columnIndex, 
-          this.state.index, 
-          this.state.type);
+          this.state.selectedColumn,
+          this.state.index);
         if (res.status) {
           this.setState({
+            loading: false,
+            loadingStatus: '',
             message: "Index built Successfully",
           })
           setTimeout(() =>{
@@ -125,10 +143,9 @@ class FileUploadContainer extends Component {
               selectedColumn={this.state.selectedColumn}
               buildIndex={this.buildIndex}
               onChangeHandler={this.onChangeHandler}
-              type={this.state.type}
-              index={this.state.index}
             />
             }
+          {this.state.loading && (<SpinnerComponent message={this.state.loadingStatus} />)}
       </div>
     );
   }

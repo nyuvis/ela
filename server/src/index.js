@@ -1,5 +1,4 @@
 const express = require('express');
-const search = require('./search');
 const cors = require('cors');
 const onHeaders = require('on-headers');
 const bodyParser = require('body-parser');

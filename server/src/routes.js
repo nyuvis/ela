@@ -5,7 +5,7 @@ const multer = require('multer');
 const csv = require('csv-parser');
 const fs = require('fs');
 const loadData = require('./load_data');
-const search = require('./search')
+const { client } = require('./connection');
 
 // Setup Storage
 const storage = multer.diskStorage({
@@ -30,7 +30,6 @@ const columnTypes = () => {
 // @access Public
 router.post('/getColumnTypes', (req, res) => {
   upload(req, res, function (err) {
-    let responseBody;
     if (err instanceof multer.MulterError) {
         return res.status(500).json(err)
     } else if (err) {
@@ -55,27 +54,81 @@ router.post('/getColumnTypes', (req, res) => {
 // @desc  upload a file to get column types
 // @access Public
 router.post('/buildIndex', (req, res) => {
-  console.log(req.body);
   const filename = req.body.fileName;
   const column = req.body.column;
-  const columnIndex = req.body.columnIndex;
   const index = req.body.indexName;
-  const type = req.body.type;
   const filepath = path.join(__dirname, 'uploads/') + filename ;
 
-  loadData.readAndInsertData(index, type, filepath, column);
-  res.json({
-    status: "success",
-  });
+  loadData.readAndInsertData(index, filepath, column, res);
 })
 
   /**
  * GET /search
  * Search for a term in the Elastic search
  */
-router.get('/search', async (req, res) => {
-  const { term, offset } = req.query
-  res.body = await search.queryTerm(term, offset)
+router.get('/getIndexes', async (req, res) => {
+  try {
+    const data = await client.cat.indices();
+    if( data.length) {
+      const indexes = data.trim().split('\n');
+      const indexNameList = [];
+      for (i=0; i<indexes.length; i++) {
+        indexNameList.push(indexes[i].split(/(\s+)/).filter((e) => e.trim().length > 0 )[2]);
+      }
+      res.json({
+        status: "success",
+        data: indexNameList
+      });
+    }
+  } catch (error) {
+    console.log(error);
+  }
 });
+
+
+
+ /**
+ * GET /testElasticSearch
+ * Search for a term in the Elastic search
+ */
+router.post('/search', async (req, res) => {
+  const { index, searchTerm, searchOffset } = req.body;
+    const data = await client.search({ 
+      index,
+      type: 'doc',
+      body: {
+        from: searchOffset,
+        query: { 
+          match : {
+            text: {
+              query: searchTerm,
+              operator: 'and',
+              fuzziness: 'auto'
+            }
+      }},
+      highlight: { fields: { text: {}}}
+
+      }});
+      res.json({
+        status: "success",
+        data
+      })
+  // const data = await client.cat.indices({v: true});
+});
+
+
+
+
+
+/**
+ * GET /testElasticSearch
+ * Search for a term in the Elastic search
+ */
+router.get('/deleteIndex', async (req, res) => {
+  // console.log(client);
+
+  // const data = await client.delete({ index});
+});
+
 
 module.exports = router;

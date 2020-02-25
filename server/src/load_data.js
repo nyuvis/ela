@@ -6,14 +6,14 @@ const csv = require('csv-parser');
 
 
 // Clear the ES index, parse and index all files from the book directory
-async function readAndInsertData (index, type, filePath, column) {
+async function readAndInsertData (index, filePath, column, res) {
   const csvData = [];
   let headersToRem;
   let headerList;
 
   try {
     //Clear previous index
-    await esConnection.resetIndex(index, type);
+    await esConnection.resetIndex(index, 'doc');
 
     // Read selected column record from filePath, and index each record in elasticsearch
     fs.createReadStream(path.join(filePath))
@@ -38,26 +38,28 @@ async function readAndInsertData (index, type, filePath, column) {
       }
     })
     .on('end', () =>{
-      console.log("end reading file");
-      
+      insertDataIntoES(csvData, index, 'doc', res);
     })
-    await insertDataIntoES(csvData);
+    
   } catch(err) {
   console.error(err);
   }
 }
 
-async function insertDataIntoES(csvData) {
+async function insertDataIntoES(csvData, index, type, res) {
   let bulkOps = []; // Array to store bulk operations
 
   // Add an index operations for each sections in the book
   for (let i=0; i< csvData.length; i++) {
     // Describe actions
-    bulkOps.push({ index: { _index: esConnection.index, _type: esConnection.type }})
+    bulkOps.push({ index: { _index: index, _type: type }})
 
     // Add document
-    bulkOps.push(csvData[i])
-
+    bulkOps.push({
+      location: i,
+      text: csvData[i].title
+    })
+    
     if(i>0 && i % 500 === 0) { // Do bulk inserts in 500 paragraph batches
       await esConnection.client.bulk({  body: bulkOps });
       bulkOps = [];
@@ -68,6 +70,9 @@ async function insertDataIntoES(csvData) {
   // Insert remainder of the bulk Ops array
   await esConnection.client.bulk({  body: bulkOps });
   console.log(`Indexed Records ${csvData.length - (bulkOps.length/2)} - ${csvData.length}\n\n\n`);
+  res.json({
+    status: "success",
+  });
 }
 
 module.exports = {

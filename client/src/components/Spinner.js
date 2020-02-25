@@ -1,10 +1,15 @@
 import React from 'react';
 import { Spinner } from 'reactstrap';
 
-const SpinnerComponent = (props) => {
+const SpinnerComponent = ({message}) => {
   return (
-    <div>
-      <Spinner type="grow" color="secondary" />
+    <div style={{ 
+      display: 'flex',
+    justifyContent: 'center',
+    marginTop: '23%'
+    }}>
+      <Spinner type="grow" color="secondary" /><br />
+      <span>{message}</span>
     </div>
   );
 }

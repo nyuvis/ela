@@ -36,9 +36,7 @@ async function resetIndex (index, type) {
 
 async function putDataMapping (index, type) {
   const schema = {
-    // title: { type: 'keyword' },
-    // author: { type: 'keyword' },
-    // location: { type: 'integer' },
+    location: { type: 'integer' },
     text: { type: 'text' }
   }
   return client.indices.putMapping({ index, type, body: { properties: schema }})

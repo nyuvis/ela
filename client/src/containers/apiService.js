@@ -34,14 +34,12 @@ export class ApiService {
     }
   }
 
-  fileUploadToBuildIndex = (fileName, column, columnIndex, indexName, type) => {
+  fileUploadToBuildIndex = (fileName, column, indexName) => {
     try {
       const data = {
         fileName,
         column,
-        columnIndex,
-        indexName,
-        type
+        indexName
       };
       return axios
         .post(`${process.env.REACT_APP_TO_DO_ITEMS_API}/buildIndex`, data)
@@ -50,6 +48,40 @@ export class ApiService {
       console.log('File upload failed...', err);
     }
   }
+
+  getAvailableIndexes = () => {
+    try {
+      return axios
+        .get(`${process.env.REACT_APP_TO_DO_ITEMS_API}/getIndexes`)
+        .then(res => res.data)
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  getSearchResultStore = (index, searchTerm, searchOffset) => {
+    // const data = 
+    
+    try {
+      return axios
+        .post(`${process.env.REACT_APP_TO_DO_ITEMS_API}/search`, {
+          index,
+          searchTerm,
+          searchOffset
+        },{
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(res => res.data)
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+
+
+
 }
 
 export default new ApiService();
