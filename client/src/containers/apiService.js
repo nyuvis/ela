@@ -34,15 +34,18 @@ export class ApiService {
     }
   }
 
-  fileUploadToBuildIndex = (fileName, column, indexName) => {
+  fileUploadToBuildIndex = (file, column, indexName) => {
     try {
-      const data = {
-        fileName,
-        column,
-        indexName
-      };
+      const data = new FormData();
+      data.append('file', file);
+      data.append('column', column);
+      data.append('indexName', indexName);
       return axios
-        .post(`${process.env.REACT_APP_TO_DO_ITEMS_API}/buildIndex`, data)
+        .post(`${process.env.REACT_APP_TO_DO_ITEMS_API}/buildIndex`, data, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
         .then(res => res.data)
     } catch (err) {
       console.log('File upload failed...', err);

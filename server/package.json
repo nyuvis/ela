@@ -13,17 +13,12 @@
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
-    "csv-parse": "^4.8.5",
     "csv-parser": "^2.3.2",
-    "csvtojson": "^2.0.10",
     "elasticsearch": "13.3.1",
     "express": "^4.17.1",
-    "joi": "13.0.1",
-    "koa": "2.4.1",
-    "koa-joi-validate": "0.5.1",
-    "koa-router": "7.2.1",
     "multer": "^1.4.2",
-    "on-headers": "^1.0.2"
+    "on-headers": "^1.0.2",
+    "streamifier": "^0.1.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.0"

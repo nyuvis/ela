@@ -3,8 +3,6 @@ const cors = require('cors');
 const onHeaders = require('on-headers');
 const bodyParser = require('body-parser');
 
-
-
 const app = new express();
 
 // Listening to setting response headers

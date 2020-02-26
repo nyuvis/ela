@@ -102,7 +102,7 @@ class FileUploadContainer extends Component {
           loadingStatus: 'Building Index....'
         })
         const res = await ApiService.fileUploadToBuildIndex(
-          this.state.file.name, 
+          this.state.file, 
           this.state.selectedColumn,
           this.state.index);
         if (res.status) {
@@ -124,12 +124,13 @@ class FileUploadContainer extends Component {
   }
 
   onChangeHandler = (e) => {
-    this.setState({ [e.target.name]: e.target.value })
+    this.setState({ [e.target.name]: e.target.value.toLowerCase() })
   }
 
   render() {
     return (
       <div>
+        {this.state.loading && (<SpinnerComponent message={this.state.loadingStatus} />)}
         {this.state.message && <Toaster message={this.state.message} />}
           <FileUpload
             handleFileSelect={this.handleFileSelect}
@@ -145,7 +146,6 @@ class FileUploadContainer extends Component {
               onChangeHandler={this.onChangeHandler}
             />
             }
-          {this.state.loading && (<SpinnerComponent message={this.state.loadingStatus} />)}
       </div>
     );
   }

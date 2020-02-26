@@ -1,22 +1,23 @@
 const fs = require('fs');
 const path = require('path');
 const esConnection = require('./connection');
-const csvToJson = require('csvtojson');
 const csv = require('csv-parser');
+const streamifier = require('streamifier');
 
 
 // Clear the ES index, parse and index all files from the book directory
-async function readAndInsertData (index, filePath, column, res) {
-  const csvData = [];
+async function readAndInsertData (index, file, column, res) {
+  let csvData = [];
   let headersToRem;
   let headerList;
+  let batchCounter = 0;
 
   try {
     //Clear previous index
     await esConnection.resetIndex(index, 'doc');
 
     // Read selected column record from filePath, and index each record in elasticsearch
-    fs.createReadStream(path.join(filePath))
+    streamifier.createReadStream(file)
     .on('error', () => {
       console.log("file not present")
     })
@@ -36,9 +37,17 @@ async function readAndInsertData (index, filePath, column, res) {
         }
         csvData.push(record);
       }
+      if(csvData.length >= 500) {
+        insertDataIntoES(csvData, index, 'doc',column, batchCounter);
+        batchCounter += 1;
+        csvData = [];
+      }
     })
     .on('end', () =>{
-      insertDataIntoES(csvData, index, 'doc',column, res);
+      insertDataIntoES(csvData, index, 'doc',column, batchCounter);
+      res.json({
+        status: "success",
+      });
     })
     
   } catch(err) {
@@ -46,33 +55,23 @@ async function readAndInsertData (index, filePath, column, res) {
   }
 }
 
-async function insertDataIntoES(csvData, index, type, column, res) {
+async function insertDataIntoES(csvData, index, type, column, batchCounter) {
   let bulkOps = []; // Array to store bulk operations
 
   // Add an index operations for each sections in the book
   for (let i=0; i< csvData.length; i++) {
     // Describe actions
     bulkOps.push({ index: { _index: index, _type: type }})
-
     // Add document
     bulkOps.push({
-      location: i,
+      location: (batchCounter*500) + i,
       text: csvData[i][column]
     })
-    
-    if(i>0 && i % 500 === 0) { // Do bulk inserts in 500 paragraph batches
-      await esConnection.client.bulk({  body: bulkOps });
-      bulkOps = [];
-      console.log(`Indexed Records ${i-499}- ${i}`);
-    }
   }
 
   // Insert remainder of the bulk Ops array
   await esConnection.client.bulk({  body: bulkOps });
-  console.log(`Indexed Records ${csvData.length - (bulkOps.length/2)} - ${csvData.length}\n\n\n`);
-  res.json({
-    status: "success",
-  });
+  console.log(`Indexed Records ${(batchCounter*500)+1} - ${(batchCounter*500) + csvData.length}\n\n\n`);
 }
 
 module.exports = {

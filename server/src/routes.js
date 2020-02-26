@@ -1,71 +1,44 @@
 const express = require('express');
 const router = express.Router();
-const path = require('path');
 const multer = require('multer');
 const csv = require('csv-parser');
-const fs = require('fs');
 const loadData = require('./load_data');
 const { client } = require('./connection');
+const streamifier = require('streamifier');
 
-// Setup Storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, 'uploads/'));
-  },
-  filename: function(req, file, cb) {
-    cb(null, file.originalname );
-  }
-});
+// Setting Memory storage
+const upload = multer({ storage: multer.memoryStorage() });
 
-// Upload Instance for single file
-const upload = multer({ storage }).single('file');
-
-
-const columnTypes = () => {
-// function to find the data types of column in csv file
-}
-
-// @route POST /getColumnTypes
-// @desc  upload a file to get column types
-// @access Public
-router.post('/getColumnTypes', (req, res) => {
-  upload(req, res, function (err) {
-    if (err instanceof multer.MulterError) {
-        return res.status(500).json(err)
-    } else if (err) {
-        return res.status(500).json(err)
+router.post('/getColumnTypes', upload.single('file'), (req, res) => {
+    try {
+      const file = req.file.buffer;
+      streamifier.createReadStream(file)
+      .pipe(csv({ separator: '\n'}))
+      .on('headers', (headers) => {
+        res.json({
+          status: "success",
+          headerList: headers[0].split('\t')
+        });
+      })
+    } catch (error) {
+      console.log(error);
     }
-    const filepath = path.join(__dirname, 'uploads/') + req.file.originalname ;
-    fs.createReadStream(path.join(filepath))
-    .pipe(csv({ separator: '\n'}))
-    .on('headers', (headers) => {
-      console.log(`First header:---- ${headers[0]}`)
-      res.json({
-        status: "success",
-        headerList: headers[0].split('\t')
-      });
-    })
-  })
 })
 
-
-
-// @route POST /getColumnTypes
-// @desc  upload a file to get column types
+// @route POST /buildIndex
+// @desc  build index into elastic search
 // @access Public
-router.post('/buildIndex', (req, res) => {
-  const filename = req.body.fileName;
+router.post('/buildIndex',upload.single('file'), (req, res) => {
   const column = req.body.column;
   const index = req.body.indexName;
-  const filepath = path.join(__dirname, 'uploads/') + filename ;
+  const file = req.file.buffer;
 
-  loadData.readAndInsertData(index, filepath, column, res);
+  loadData.readAndInsertData(index, file, column, res);
 })
 
-  /**
- * GET /search
- * Search for a term in the Elastic search
- */
+// @route GET /getIndexes
+// @desc  get the available index in ElasticSearch
+// @access Public
 router.get('/getIndexes', async (req, res) => {
   try {
     const data = await client.cat.indices();
@@ -86,11 +59,9 @@ router.get('/getIndexes', async (req, res) => {
 });
 
 
-
- /**
- * GET /testElasticSearch
- * Search for a term in the Elastic search
- */
+// @route POST /search
+// @desc  search the Elastic Search
+// @access Public
 router.post('/search', async (req, res) => {
   const { index, searchTerm, searchOffset } = req.body;
     const data = await client.search({ 
@@ -113,11 +84,7 @@ router.post('/search', async (req, res) => {
         status: "success",
         data
       })
-  // const data = await client.cat.indices({v: true});
 });
-
-
-
 
 
 /**

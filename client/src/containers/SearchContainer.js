@@ -10,9 +10,7 @@ class SearchContainer extends Component {
     searchIndex: '',
     searchResult: '',
     availableIndexes: [],
-    totalNoOfrecords: '',
     hits: '',
-    pageNo: '',
     dropdownOpen: true,
     loading: false,
     searchOffset: 0,
@@ -171,7 +169,7 @@ const StyledSearchBox = styled.div`
   .select-div {
     display: flex;
     flex-direction: row;
-    background-color: lightgrey;
+    background-color: #E4E4E4;
     border-radius: 12px
   }
 
@@ -200,7 +198,7 @@ const StyledSearchBox = styled.div`
     margin-top: 1%;
     display: flex;
     flex-direction: column;
-    background-color: lightgrey;
+    background-color: #E4E4E4;
     min-height: 5%;
     border-radius: 12px;
     height: 3.234rem;
