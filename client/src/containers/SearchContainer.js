@@ -44,20 +44,20 @@ class SearchContainer extends Component {
   }
 
   searchStore = async (e) => {
+    const searchTerm = e.target.value;
     if(this.state.selectIndex) {
       if(this.state.showAlert) {
         this.setState({
-          showAlert: false
+          showAlert: false,
         })
       }
-      const searchTerm = e.target.value;
+      this.setState({ searchTerm });
       const response = await ApiService.getSearchResultStore(this.state.selectIndex, searchTerm, 0);
       const totalHits = response.data.hits.total;
       const currentResult = response.data.hits.hits;
       this.setState({
         searchResult: currentResult,
         hits: totalHits,
-        searchTerm,
       });
     }
     if(!this.state.selectIndex){
