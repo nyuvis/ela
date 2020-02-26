@@ -150,7 +150,7 @@ class SearchContainer extends Component {
                 <div key={"div1"+index} className="result">
                   <div key={"div2"+index} className="result-hit">
                     <span key={"key1"+index} >Location: {result._source.location} </span><br/>
-                    <span key={"key2"+index}>{result._source.text}</span>
+                    <span key={"key2"+index}>{result.highlight.text[0]}</span>
                   </div>
               </div>)})}
             </div>)}
