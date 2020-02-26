@@ -38,7 +38,7 @@ async function readAndInsertData (index, filePath, column, res) {
       }
     })
     .on('end', () =>{
-      insertDataIntoES(csvData, index, 'doc', res);
+      insertDataIntoES(csvData, index, 'doc',column, res);
     })
     
   } catch(err) {
@@ -46,7 +46,7 @@ async function readAndInsertData (index, filePath, column, res) {
   }
 }
 
-async function insertDataIntoES(csvData, index, type, res) {
+async function insertDataIntoES(csvData, index, type, column, res) {
   let bulkOps = []; // Array to store bulk operations
 
   // Add an index operations for each sections in the book
@@ -57,7 +57,7 @@ async function insertDataIntoES(csvData, index, type, res) {
     // Add document
     bulkOps.push({
       location: i,
-      text: csvData[i].title
+      text: csvData[i][column]
     })
     
     if(i>0 && i % 500 === 0) { // Do bulk inserts in 500 paragraph batches

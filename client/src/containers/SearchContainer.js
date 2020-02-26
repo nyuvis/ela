@@ -185,6 +185,7 @@ const StyledSearchBox = styled.div`
     flex-direction: column;
     background-color: #F9F7F7;
     min-height: 5%;
+    overflow-wrap: break-word;
     border-radius: 12px;
     height: max-content;
   }
