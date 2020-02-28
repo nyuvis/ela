@@ -5,7 +5,7 @@ services:
     container_name: node-api
     build:  # it will look for Dockerfile in current directory to build the image
       context: ./server
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     ports:
       - "3000:3000" # Expose API port
     restart: on-failure
@@ -20,12 +20,12 @@ services:
   web-app:
     build:
       context: ./client
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     volumes:
       - /app/node_modules
       - ./client:/app
     ports:
-      - '8080:8080'
+      - "8080:8080"
     restart: on-failure
     container_name: web-app
     environment: # Set ENV vars

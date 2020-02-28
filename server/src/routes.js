@@ -48,6 +48,9 @@ router.get('/getIndexes', async (req, res) => {
       for (i=0; i<indexes.length; i++) {
         indexNameList.push(indexes[i].split(/(\s+)/).filter((e) => e.trim().length > 0 )[2]);
       }
+      const regex = /^\.*/;
+      const list = indexNameList.filter((index) => !index.match(regex));
+      console.log(list);
       res.json({
         status: "success",
         data: indexNameList
