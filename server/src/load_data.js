@@ -1,5 +1,3 @@
-const fs = require('fs');
-const path = require('path');
 const esConnection = require('./connection');
 const csv = require('csv-parser');
 const streamifier = require('streamifier');
@@ -13,22 +11,31 @@ async function readAndInsertData (index, file, column, res) {
   let batchCounter = 0;
 
   try {
+    // fix separator
+      let fileSeparator;
+      if (file.originalname.includes(".csv")) {
+        fileSeparator = ',';
+      } else if (file.originalname.includes(".tsv")) {
+        fileSeparator = '\t';
+      } else if (file.originalname.includes(".psv")) {
+        fileSeparator = '|';
+      }
     //Clear previous index
     await esConnection.resetIndex(index, 'doc');
 
     // Read selected column record from filePath, and index each record in elasticsearch
-    streamifier.createReadStream(file)
+    streamifier.createReadStream(file.buffer)
     .on('error', () => {
       console.log("file not present")
     })
     .pipe(csv({ separator: '\n'}))
     .on('headers', (headers) => {
       headersToRem = headers;
-      headerList = headersToRem[0].split('\t');
+      headerList = headersToRem[0].split(fileSeparator);
     })
     .on('data', (row) => {
       if(row[headersToRem]){
-        const contentList = row[headersToRem].split('\t');
+        const contentList = row[headersToRem].split(fileSeparator);
         const record = {};
         for(i=0;i<headerList.length;i++) {
           if(headerList[i] === column) {

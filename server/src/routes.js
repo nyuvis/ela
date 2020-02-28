@@ -7,21 +7,41 @@ const { client } = require('./connection');
 const streamifier = require('streamifier');
 
 // Setting Memory storage
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  fileFilter: (req, file, cb) => {
+    if (
+      !file.originalname.includes(".csv") &&
+      !file.originalname.includes(".tsv") &&
+      !file.originalname.includes(".psv") 
+    ) {
+      return cb(null, false, new Error("Only CSV, TSV and PSV are allowed"));
+    }
+    cb(null, true);
+  }
+ });
 
 router.post('/getColumnTypes', upload.single('file'), (req, res) => {
     try {
+      let fileSeparator;
+      if (req.file.originalname.includes(".csv")) {
+        fileSeparator = ',';
+      } else if (req.file.originalname.includes(".tsv")) {
+        fileSeparator = '\t';
+      } else if (req.file.originalname.includes(".psv")) {
+        fileSeparator = '|';
+      }
       const file = req.file.buffer;
       streamifier.createReadStream(file)
       .pipe(csv({ separator: '\n'}))
       .on('headers', (headers) => {
         res.json({
           status: "success",
-          headerList: headers[0].split('\t')
+          headerList: headers[0].split(fileSeparator)
         });
       })
     } catch (error) {
-      console.log(error);
+      res.status(400).send({ error });
     }
 })
 
@@ -31,7 +51,7 @@ router.post('/getColumnTypes', upload.single('file'), (req, res) => {
 router.post('/buildIndex',upload.single('file'), (req, res) => {
   const column = req.body.column;
   const index = req.body.indexName;
-  const file = req.file.buffer;
+  const file = req.file;
 
   loadData.readAndInsertData(index, file, column, res);
 })
