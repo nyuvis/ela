@@ -8,10 +8,6 @@ import sys
 import transform_Input
 from transform_Input import TransformInput
 
-import logging
-import logging.handlers
-import sys
-
 
 class Document2Vector(object):
   def __init__(self, list_of_list_of_words):
