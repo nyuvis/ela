@@ -99,7 +99,7 @@ class FileUploadContainer extends Component {
       if (this.state.selectedColumn && this.state.index.length) {
         this.setState({
           loading: true,
-          loadingStatus: 'Building Index....'
+          loadingStatus: 'Building Collection....'
         })
         const res = await ApiService.fileUploadToBuildIndex(
           this.state.file, 
@@ -109,7 +109,7 @@ class FileUploadContainer extends Component {
           this.setState({
             loading: false,
             loadingStatus: '',
-            message: "Index built Successfully",
+            message: "Collection built Successfully",
           })
           setTimeout(() =>{
             this.setState({
