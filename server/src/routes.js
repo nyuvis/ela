@@ -21,7 +21,7 @@ const upload = multer({
   }
  });
 
-router.post('/getColumnTypes', upload.single('file'), (req, res) => {
+router.post('/getColumnTypes', upload.single('file'), (req, res, next) => {
     try {
       let fileSeparator;
       if (req.file.originalname.includes(".csv")) {
@@ -41,19 +41,26 @@ router.post('/getColumnTypes', upload.single('file'), (req, res) => {
         });
       })
     } catch (error) {
-      res.status(400).send({ error });
+      let err = new Error(`Invalid File`);
+      err.statusCode = 400;
+      next(err);
     }
 })
 
 // @route POST /buildIndex
 // @desc  build index into elastic search
 // @access Public
-router.post('/buildIndex',upload.single('file'), (req, res) => {
+router.post('/buildIndex',upload.single('file'), (req, res, next) => {
   const column = req.body.column;
   const index = req.body.indexName;
   const file = req.file;
-
-  loadData.readAndInsertData(index, file, column, res);
+  try {
+    loadData.readAndInsertData(index, file, column, res);
+  } catch (error) {
+    let err = new Error(`Error in building Index`);
+    err.statusCode = 500;
+    next(err);
+  }
 })
 
 // @route GET /getIndexes
@@ -77,7 +84,9 @@ router.get('/getIndexes', async (req, res) => {
       });
     }
   } catch (error) {
-    console.log(error);
+    let err = new Error(`Error in getting Indexes`);
+    err.statusCode = 500;
+    next(err);
   }
 });
 

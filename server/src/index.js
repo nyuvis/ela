@@ -33,6 +33,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Use Routes here
 app.use('/', require('./routes'));
 
+// Error handling
+app.use((err, req, res, next) => {
+  console.log(err.message);
+  if (!err.statusCode) err.statusCode = 500;
+  res.status(err.statusCode).send({
+    status: err.statusCode,
+    message: err.message
+  });
+})
 
 const port = process.env.PORT || 3001
 
