@@ -7,6 +7,7 @@ from gensim import corpora
 import sys
 import transform_Input
 from transform_Input import TransformInput
+import json
 
 
 class Document2Vector(object):
@@ -36,14 +37,15 @@ class Document2Vector(object):
     print('Training Doc2vec model')
     self.model.train(self.train_data, total_examples=self.model.corpus_count, epochs=self.model.epochs)
 
-  def saving_model(self):
+  def saving_model(self, collectionName):
     print('Saving Doc2Vec model')
-    self.model.save('Doc2vec_Model')
+    self.model.save('model_csv_docs/'+collectionName+'/Doc2vec_Model')
 
 if __name__ == "__main__":
   # storing args from command line
   input_type = sys.argv[1]
-  input_value = sys.argv[2]
+  collectionName = sys.argv[2]
+  input_value = json.loads(sys.stdin.readlines()[0])
 
   # transforming input into required format
   
@@ -69,7 +71,7 @@ if __name__ == "__main__":
     doc2vec_obj.train_model()
     
     # once the Object is trained, save the model model for creating vectors for Docs
-    doc2vec_obj.saving_model()
+    doc2vec_obj.saving_model(collectionName)
 
   except ValueError:
     print("Invalid parameters")

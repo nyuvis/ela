@@ -55,6 +55,7 @@ router.post('/buildIndex',upload.single('file'), (req, res, next) => {
   const index = req.body.indexName;
   const file = req.file;
   try {
+    // pushing data into elastic Search and feeding the same data to train model
     loadData.readAndInsertData(index, file, column, res);
   } catch (error) {
     let err = new Error(`Error in building Index`);

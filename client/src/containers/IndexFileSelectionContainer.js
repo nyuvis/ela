@@ -28,7 +28,7 @@ const IndexFileSelectionContainer = ({list, onSelect, selectedColumn, buildIndex
                   disabled={!selectedColumn}
                   onClick={buildIndex}
                   style={{ marginLeft: '1%'}}>
-                    Build Index
+                    Build Collection
                 </Button>
               </div>
             )}

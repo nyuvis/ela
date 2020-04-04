@@ -1,14 +1,86 @@
 const esConnection = require('./connection');
 const csv = require('csv-parser');
 const streamifier = require('streamifier');
+const { spawn } = require('child_process')
+const path = require('path')
+
+
+async function spawnPythonScripts(params, listOfDocs) {
+
+  return new Promise(function(resolve, reject){
+    
+    let stdout  = [];
+    let stderr = [];
+    
+    // spawn new child process to call the python script
+    const python = spawn('python', params);
+    python.stdin.write(JSON.stringify(listOfDocs));
+    python.stdin.end();
+    
+    // collect data from script
+    python.stdout.on('data', function (data) {
+      console.log('Pipe data from python script ...');
+      stdout.push(data);
+    });
+    python.stderr.on('data', function (data) {
+      console.log('Pipe Error data from python script ...');
+      stderr.push(data);
+    });
+    // in close event we are sure that stream from child process is closed
+    python.on('close', (code) => {
+    console.log(`child process close all stdio with code ${code}`);
+    if (code === 0) {
+      resolve(stdout.join(""));
+    } else {
+      reject(stderr.join(""));
+    }
+    });
+  })
+}
+
+async function spawnUmapScripts(params, listOfDocs, documentIdList) {
+
+  var largeDataSet = [];
+
+  // spawn new child process to call the python script
+  const python = spawn('python', params);
+ 
+  python.stdin.write(JSON.stringify(JSON.stringify(listOfDocs)+'\n'+ JSON.stringify(documentIdList)));
+  // python.stdin.write(JSON.stringify(documentIdList));
+  python.stdin.end();
+  
+  // collect data from script
+  python.stdout.on('data', function (data) {
+   console.log('Pipe data from python script ...');
+   largeDataSet.push(data);
+  });
+  // in close event we are sure that stream from child process is closed
+  python.on('close', (code) => {
+  console.log(`child process close all stdio with code ${code}`);
+  // send data to browser
+  console.log(largeDataSet.join(""));
+  });
+ }
+
+ async function callPythonScripts(listOfDocs, indexName, documentIdList) {
+  spawnPythonScripts([path.join(__dirname, "pythonScripts/lda_Script.py"), 'document_list', indexName], listOfDocs);
+  const Doc2Vec = await spawnPythonScripts([path.join(__dirname, "pythonScripts/doc2vec_Script.py"), 'document_list', indexName], listOfDocs);
+  if(Doc2Vec){
+    spawnUmapScripts([path.join(__dirname, "pythonScripts/tsne_umap_Script.py"), 'Doc2vec_Model', 'document_list', indexName], listOfDocs, documentIdList);
+  }
+// Add code here for dispatching messages to Queue or any pooling services
+} 
 
 
 // Clear the ES index, parse and index all files from the book directory
 async function readAndInsertData (index, file, column, res) {
   let csvData = [];
+  let pythonScriptInput = [];
+  let documentIdList = [];
   let headersToRem;
   let headerList;
   let batchCounter = 0;
+  let documentId = 1;
 
   try {
     // fix separator
@@ -40,18 +112,26 @@ async function readAndInsertData (index, file, column, res) {
         for(i=0;i<headerList.length;i++) {
           if(headerList[i] === column) {
             record[headerList[i]]= contentList[i];
+            // creating list of list of rows content
+            pythonScriptInput.push(contentList[i]);
+            documentIdList.push(documentId);
+            documentId += 1;
           }
         }
-        csvData.push(record);
+        // csvData.push(record);
       }
       if(csvData.length >= 500) {
-        insertDataIntoES(csvData, index, 'doc',column, batchCounter);
+        // insert 500 rows to elastic Search
+        // insertDataIntoES(csvData, index, 'doc',column, batchCounter);
         batchCounter += 1;
         csvData = [];
       }
     })
     .on('end', () =>{
-      insertDataIntoES(csvData, index, 'doc',column, batchCounter);
+      // Insert the last rows which are less than 500
+      // insertDataIntoES(csvData, index, 'doc',column, batchCounter);
+      // Calling python script with data
+      callPythonScripts(pythonScriptInput, index, documentIdList);
       res.json({
         status: "success",
       });

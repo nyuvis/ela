@@ -46,10 +46,13 @@ class TransformInput(object):
       # multiple_files is name of the directory to read all documents, value is path to directory
       texts = ReadTextFiles(self.value)
       return texts
-    
 
     else:
       raise ValueError
+
+  def cleanInputBeforeTransform(self):
+    # write code for cleaning the documents
+    pass
 
 
 

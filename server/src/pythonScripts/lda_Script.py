@@ -10,6 +10,7 @@ import transform_Input
 from transform_Input import TransformInput
 import pandas as pd
 import csv
+import json
 
 class LDA_Doc(object):
   def __init__(self, list_of_list_of_words):
@@ -53,16 +54,16 @@ class LDA_Doc(object):
   def compute_complexity_perplexity(self):
     pass
 
-  def saving_topics15Keywords_to_csv(self):
+  def saving_topics15Keywords_to_csv(self, collectionName):
     # Saving LDA model to disk
-    self.model.save('lda_model')
-    print('Saving LdaModel model topics with top 15 keywords')
+    self.model.save('model_csv_docs/'+collectionName+'/lda_model')
+    print('Saving LdaModel model topics with top 10 keywords')
     topics_list = []
 
     for t in range(self.model.num_topics):
       topics_list.append(['\t' + x[0] for x in self.model.show_topic(t)])
 
-    with open('lda_text.csv','w') as out:
+    with open('model_csv_docs/'+collectionName+'/lda_text.csv','w') as out:
       csv_out=csv.writer(out)
       for row in topics_list:
           csv_out.writerow(row)
@@ -70,7 +71,8 @@ class LDA_Doc(object):
 if __name__ == "__main__":
   # storing args from command line
   input_type = sys.argv[1]
-  input_value = sys.argv[2]
+  collectionName = sys.argv[2]
+  input_value = json.loads(sys.stdin.readlines()[0])
 
   # transforming input into required format
   
@@ -94,7 +96,7 @@ if __name__ == "__main__":
     lda_obj.create_lda_model()
 
     # once the Object is trained, save the model model for creating vectors for Docs
-    lda_obj.saving_topics15Keywords_to_csv()
+    lda_obj.saving_topics15Keywords_to_csv(collectionName)
 
   except ValueError:
     print("Invalid parameters")
