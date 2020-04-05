@@ -3,6 +3,7 @@ const csv = require('csv-parser');
 const streamifier = require('streamifier');
 const { spawn } = require('child_process')
 const path = require('path')
+var fs = require('fs')
 
 
 async function spawnPythonScripts(params, listOfDocs) {
@@ -30,6 +31,7 @@ async function spawnPythonScripts(params, listOfDocs) {
     python.on('close', (code) => {
     console.log(`child process close all stdio with code ${code}`);
     if (code === 0) {
+      console.log(stdout.join(""));
       resolve(stdout.join(""));
     } else {
       reject(stderr.join(""));
@@ -63,12 +65,30 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
  }
 
  async function callPythonScripts(listOfDocs, indexName, documentIdList) {
+   
+  let dir = path.join(__dirname, ".././model_csv_files");
+  console.log(dir);
+
+  if (!fs.existsSync(dir)){
+      fs.mkdirSync(dir);
+      let collectionPath = path.join(__dirname, ".././model_csv_files/"+indexName);
+      console.log(collectionPath);
+      if (!fs.existsSync(collectionPath)){
+        fs.mkdirSync(collectionPath);
+      }
+  } else {
+    let collectionPath = path.join(__dirname, ".././model_csv_files/"+indexName);
+    console.log(collectionPath);
+    if (!fs.existsSync(collectionPath)){
+      fs.mkdirSync(collectionPath);
+    }
+  }
   spawnPythonScripts([path.join(__dirname, "pythonScripts/lda_Script.py"), 'document_list', indexName], listOfDocs);
   const Doc2Vec = await spawnPythonScripts([path.join(__dirname, "pythonScripts/doc2vec_Script.py"), 'document_list', indexName], listOfDocs);
   if(Doc2Vec){
     spawnUmapScripts([path.join(__dirname, "pythonScripts/tsne_umap_Script.py"), 'Doc2vec_Model', 'document_list', indexName], listOfDocs, documentIdList);
   }
-// Add code here for dispatching messages to Queue or any pooling services
+  // Add code here for dispatching messages to Queue or any pooling services
 } 
 
 
@@ -129,7 +149,7 @@ async function readAndInsertData (index, file, column, res) {
     })
     .on('end', () =>{
       // Insert the last rows which are less than 500
-      // insertDataIntoES(csvData, index, 'doc',column, batchCounter);
+      insertDataIntoES(csvData, index, 'doc',column, batchCounter);
       // Calling python script with data
       callPythonScripts(pythonScriptInput, index, documentIdList);
       res.json({

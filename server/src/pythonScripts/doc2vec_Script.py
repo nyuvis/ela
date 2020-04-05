@@ -39,14 +39,16 @@ class Document2Vector(object):
 
   def saving_model(self, collectionName):
     print('Saving Doc2Vec model')
-    self.model.save('model_csv_docs/'+collectionName+'/Doc2vec_Model')
+    # print(collectionName)
+    # fileLoc = 'model_csv_docs/'+collectionName+'/Doc2vec_Model'
+    self.model.save('server/model_csv_files/'+collectionName+'/Doc2vec_Model')
 
 if __name__ == "__main__":
   # storing args from command line
   input_type = sys.argv[1]
   collectionName = sys.argv[2]
   input_value = json.loads(sys.stdin.readlines()[0])
-
+  print(collectionName)
   # transforming input into required format
   
   try:

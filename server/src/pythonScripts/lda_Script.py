@@ -56,14 +56,14 @@ class LDA_Doc(object):
 
   def saving_topics15Keywords_to_csv(self, collectionName):
     # Saving LDA model to disk
-    self.model.save('model_csv_docs/'+collectionName+'/lda_model')
+    self.model.save('server/model_csv_files/'+collectionName+'/lda_model')
     print('Saving LdaModel model topics with top 10 keywords')
     topics_list = []
 
     for t in range(self.model.num_topics):
       topics_list.append(['\t' + x[0] for x in self.model.show_topic(t)])
 
-    with open('model_csv_docs/'+collectionName+'/lda_text.csv','w') as out:
+    with open('server/model_csv_files/'+collectionName+'/lda_text.csv','w') as out:
       csv_out=csv.writer(out)
       for row in topics_list:
           csv_out.writerow(row)
