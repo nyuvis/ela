@@ -138,11 +138,11 @@ async function readAndInsertData (index, file, column, res) {
             documentId += 1;
           }
         }
-        // csvData.push(record);
+        csvData.push(record);
       }
       if(csvData.length >= 500) {
         // insert 500 rows to elastic Search
-        // insertDataIntoES(csvData, index, 'doc',column, batchCounter);
+        insertDataIntoES(csvData, index, 'doc',column, batchCounter);
         batchCounter += 1;
         csvData = [];
       }
@@ -164,7 +164,7 @@ async function readAndInsertData (index, file, column, res) {
 
 async function insertDataIntoES(csvData, index, type, column, batchCounter) {
   let bulkOps = []; // Array to store bulk operations
-
+  
   // Add an index operations for each sections in the book
   for (let i=0; i< csvData.length; i++) {
     // Describe actions
