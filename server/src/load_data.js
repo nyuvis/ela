@@ -67,18 +67,15 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
  async function callPythonScripts(listOfDocs, indexName, documentIdList) {
    
   let dir = path.join(__dirname, ".././model_csv_files");
-  console.log(dir);
 
   if (!fs.existsSync(dir)){
       fs.mkdirSync(dir);
       let collectionPath = path.join(__dirname, ".././model_csv_files/"+indexName);
-      console.log(collectionPath);
       if (!fs.existsSync(collectionPath)){
         fs.mkdirSync(collectionPath);
       }
   } else {
     let collectionPath = path.join(__dirname, ".././model_csv_files/"+indexName);
-    console.log(collectionPath);
     if (!fs.existsSync(collectionPath)){
       fs.mkdirSync(collectionPath);
     }

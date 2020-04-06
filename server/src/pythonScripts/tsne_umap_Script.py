@@ -9,11 +9,12 @@ import gensim
 import json
 import transform_Input
 from transform_Input import TransformInput
+import os
 
 class Umap_to_csv(object):
-  def __init__(self, doc2Vec_model_Name, input_list_of_documents, document_id_list, collectionName):
+  def __init__(self, doc2Vec_model_Name, input_list_of_documents, document_id_list, path, collectionName):
     print('Initializing the Umap_to_csv instance with list of list of vectors')
-    self.model = gensim.models.doc2vec.Doc2Vec.load('server/model_csv_files/'+collectionName+'/Doc2vec_Model')
+    self.model = gensim.models.doc2vec.Doc2Vec.load(path+'/model_csv_files/'+collectionName+'/Doc2vec_Model')
     self.input_list_of_documents = input_list_of_documents
     self.document_id_list = document_id_list
 
@@ -29,9 +30,9 @@ class Umap_to_csv(object):
     print('Creating Projections vectors')
     self.projection = umap.UMAP().fit_transform(self.doc_vectors)
 
-  def saving_projection(self, collectionName):
+  def saving_projection(self, path, collectionName):
     print('Saving projections to csv')
-    with open('server/model_csv_files/'+collectionName+'/umap_title.csv','w') as out:
+    with open(path+'/model_csv_files/'+collectionName+'/umap_title.csv','w') as out:
       csv_out=csv.writer(out)
       if len(self.document_id_list) == len(self.projection):
         for doc_id, row in zip(self.document_id_list, self.projection):
@@ -49,8 +50,7 @@ if __name__ == "__main__":
   input_value = json.loads(input_args[0])
   document_id_list = json.loads(input_args[1])
   
-  # print(document_id_list)
-  # print(input_value)
+  path =  os.path.abspath(os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)), os.pardir))
 
   
   try:
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     list_of_list_of_words = transformed_Inp_Obj.transformInput()
 
     # list_of_list_of_vectors is [['0.03443343',..], ['-0.3343',...],....] type input
-    umap_to_csv_obj = Umap_to_csv(doc2Vec_model_Name, list_of_list_of_words, document_id_list, collectionName)
+    umap_to_csv_obj = Umap_to_csv(doc2Vec_model_Name, list_of_list_of_words, document_id_list, path,  collectionName)
 
     # infer vectors of documents
     umap_to_csv_obj.infer_vectors_for_documents()
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     umap_to_csv_obj.create_projections()
     
     # once the Object is trained, save the model model for creating vectors for Docs
-    umap_to_csv_obj.saving_projection(collectionName)
+    umap_to_csv_obj.saving_projection(path, collectionName)
 
   except ValueError:
     print("Invalid parameters")
