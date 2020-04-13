@@ -4,7 +4,7 @@ const streamifier = require('streamifier');
 const { spawn } = require('child_process')
 const path = require('path')
 var fs = require('fs')
-const DOC_FOLDER_NAME = process.env.ES_HOST || 'model_csv_files';
+const DOC_FOLDER_NAME = process.env.DOC_FOLDER_NAME || 'model_csv_files';
 
 
 async function spawnPythonScripts(params, listOfDocs) {
@@ -82,7 +82,7 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
   }
  
  async function callPythonScripts(listOfDocs, indexName, documentIdList, userId, sendStream) {
-   
+
   let dir = path.join(__dirname, ".././"+DOC_FOLDER_NAME);
   
   if (!fs.existsSync(dir)){
