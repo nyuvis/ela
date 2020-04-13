@@ -14,6 +14,7 @@ services:
       - ./server:/app # Look at the server directory and copy everything into the app folder in the container
     environment: # Set ENV vars
      - NODE_ENV=local
+     - DOC_FOLDER_NAME=documents_csv
      - ES_HOST=elasticsearch
      - PORT=3000
 

@@ -55,16 +55,16 @@ class LDA_Doc(object):
   def compute_complexity_perplexity(self):
     pass
 
-  def saving_topics15Keywords_to_csv(self, path, collectionName):
+  def saving_topicsKeywords_to_csv(self, path, collectionName, docFolderName):
     # Saving LDA model to disk
-    self.model.save(path+'/model_csv_files/'+collectionName+'/lda_model')
+    # self.model.save(path+'/'+docFolderName+'/'+collectionName+'/lda_model')
     print('Saving LdaModel model topics with top 10 keywords')
     topics_list = []
 
     for t in range(self.model.num_topics):
-      topics_list.append(['\t' + x[0] for x in self.model.show_topic(t)])
+      topics_list.append([x[0] for x in self.model.show_topic(t)])
 
-    with open(path+'/model_csv_files/'+collectionName+'/lda_text.csv','w') as out:
+    with open(path+'/'+docFolderName+'/'+collectionName+'/lda_text.csv','w') as out:
       csv_out=csv.writer(out)
       for row in topics_list:
           csv_out.writerow(row)
@@ -73,6 +73,7 @@ if __name__ == "__main__":
   # storing args from command line
   input_type = sys.argv[1]
   collectionName = sys.argv[2]
+  docFolderName = sys.argv[3]
   input_value = json.loads(sys.stdin.readlines()[0])
   path =  os.path.abspath(os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)), os.pardir))
   # transforming input into required format
@@ -97,7 +98,7 @@ if __name__ == "__main__":
     lda_obj.create_lda_model()
 
     # once the Object is trained, save the model model for creating vectors for Docs
-    lda_obj.saving_topics15Keywords_to_csv(path, collectionName)
+    lda_obj.saving_topicsKeywords_to_csv(path, collectionName, docFolderName)
 
   except ValueError:
     print("Invalid parameters")

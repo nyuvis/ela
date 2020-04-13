@@ -63,7 +63,7 @@ class App extends Component {
       this.setState({
         toastMessage: '',
       })
-    }, 5000);
+    }, 10000);
   }
 
   render() {

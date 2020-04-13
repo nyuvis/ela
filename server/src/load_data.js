@@ -4,7 +4,7 @@ const streamifier = require('streamifier');
 const { spawn } = require('child_process')
 const path = require('path')
 var fs = require('fs')
-// const { sendStream } = require('./routes');
+const DOC_FOLDER_NAME = process.env.ES_HOST || 'model_csv_files';
 
 
 async function spawnPythonScripts(params, listOfDocs) {
@@ -79,37 +79,36 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
     }
     });
   })
-}
-
+  }
+ 
  async function callPythonScripts(listOfDocs, indexName, documentIdList, userId, sendStream) {
    
-  let dir = path.join(__dirname, ".././model_csv_files");
-
+  let dir = path.join(__dirname, ".././"+DOC_FOLDER_NAME);
+  
   if (!fs.existsSync(dir)){
       fs.mkdirSync(dir);
-      let collectionPath = path.join(__dirname, ".././model_csv_files/"+indexName);
+      let collectionPath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName);
       if (!fs.existsSync(collectionPath)){
         fs.mkdirSync(collectionPath);
       }
   } else {
-    let collectionPath = path.join(__dirname, ".././model_csv_files/"+indexName);
+    let collectionPath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName);
     if (!fs.existsSync(collectionPath)){
       fs.mkdirSync(collectionPath);
     }
   }
-
   sendStream(userId, "Building Topics");
-  const ldaScript = await spawnPythonScripts([path.join(__dirname, "pythonScripts/lda_Script.py"), 'document_list', indexName], listOfDocs);
+  const ldaScript = await spawnPythonScripts([path.join(__dirname, "pythonScripts/lda_Script.py"), 'document_list', indexName, DOC_FOLDER_NAME], listOfDocs);
   if (ldaScript === "SUCCESS") {
     sendStream(userId, "Topics Build Successfully");
   } else {
     sendStream(userId, "Topics Build Failed");
   }
   sendStream(userId, "Building Model");
-  const Doc2Vec = await spawnPythonScripts([path.join(__dirname, "pythonScripts/doc2vec_Script.py"), 'document_list', indexName], listOfDocs);
+  const Doc2Vec = await spawnPythonScripts([path.join(__dirname, "pythonScripts/doc2vec_Script.py"), 'document_list', indexName, DOC_FOLDER_NAME], listOfDocs);
   if (Doc2Vec === "SUCCESS") {
     sendStream(userId, "Model Build Successfully, Building Projections");
-    const umapScript = await spawnUmapScripts([path.join(__dirname, "pythonScripts/tsne_umap_Script.py"), 'Doc2vec_Model', 'document_list', indexName], listOfDocs, documentIdList)
+    const umapScript = await spawnUmapScripts([path.join(__dirname, "pythonScripts/umap_Script.py"), 'Doc2vec_Model', 'document_list', indexName, DOC_FOLDER_NAME], listOfDocs, documentIdList)
     if (umapScript === "SUCCESS") {
       sendStream(userId, "Projections Build Successfully");
     } else {
@@ -162,7 +161,7 @@ async function readAndInsertData (index, file, column, res, userId, sendStream) 
           if(headerList[i] === column) {
             record[headerList[i]]= contentList[i];
             // creating list of list of rows content
-            pythonScriptInput.push(contentList[i]);
+            pythonScriptInput.push(contentList[i].toLowerCase());
             documentIdList.push(documentId);
             documentId += 1;
           }

@@ -38,14 +38,15 @@ class Document2Vector(object):
     print('Training Doc2vec model')
     self.model.train(self.train_data, total_examples=self.model.corpus_count, epochs=self.model.epochs)
 
-  def saving_model(self, path, collectionName):
+  def saving_model(self, path, collectionName, docFolderName):
     print('Saving Doc2Vec model')
-    self.model.save(path+'/model_csv_files/'+collectionName+'/Doc2vec_Model')
+    self.model.save(path+'/'+docFolderName+'/'+collectionName+'/Doc2vec_Model')
 
 if __name__ == "__main__":
   # storing args from command line
   input_type = sys.argv[1]
   collectionName = sys.argv[2]
+  docFolderName = sys.argv[3]
   input_value = json.loads(sys.stdin.readlines()[0])
   # transforming input into required format
   path =  os.path.abspath(os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)), os.pardir))
@@ -73,7 +74,7 @@ if __name__ == "__main__":
     doc2vec_obj.train_model()
     
     # once the Object is trained, save the model model for creating vectors for Docs
-    doc2vec_obj.saving_model(path, collectionName)
+    doc2vec_obj.saving_model(path, collectionName, docFolderName)
 
   except ValueError:
     print("Invalid parameters")
