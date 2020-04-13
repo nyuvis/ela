@@ -34,14 +34,14 @@ export class ApiService {
     }
   }
 
-  fileUploadToBuildIndex = (file, column, indexName) => {
+  fileUploadToBuildIndex = (file, column, indexName, userId) => {
     try {
       const data = new FormData();
       data.append('file', file);
       data.append('column', column);
       data.append('indexName', indexName);
       return axios
-        .post(`${process.env.REACT_APP_TO_DO_ITEMS_API}/buildIndex`, data, {
+        .post(`${process.env.REACT_APP_TO_DO_ITEMS_API}/buildIndex/:${userId}`, data, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -81,10 +81,6 @@ export class ApiService {
       console.log(err);
     }
   }
-
-
-
-
 }
 
 export default new ApiService();

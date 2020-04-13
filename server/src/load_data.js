@@ -4,6 +4,7 @@ const streamifier = require('streamifier');
 const { spawn } = require('child_process')
 const path = require('path')
 var fs = require('fs')
+// const { sendStream } = require('./routes');
 
 
 async function spawnPythonScripts(params, listOfDocs) {
@@ -32,9 +33,11 @@ async function spawnPythonScripts(params, listOfDocs) {
     console.log(`child process close all stdio with code ${code}`);
     if (code === 0) {
       console.log(stdout.join(""));
-      resolve(stdout.join(""));
+      resolve("SUCCESS");
     } else {
-      reject(stderr.join(""));
+      console.log(stdout.join(""));
+      console.log(stderr.join(""));
+      reject("ERROR");
     }
     });
   })
@@ -42,29 +45,43 @@ async function spawnPythonScripts(params, listOfDocs) {
 
 async function spawnUmapScripts(params, listOfDocs, documentIdList) {
 
-  var largeDataSet = [];
+  return new Promise(function(resolve, reject){
+    
+    let stdout  = [];
+    let stderr = [];
 
-  // spawn new child process to call the python script
-  const python = spawn('python', params);
- 
-  python.stdin.write(JSON.stringify(JSON.stringify(listOfDocs)+'\n'+ JSON.stringify(documentIdList)));
-  // python.stdin.write(JSON.stringify(documentIdList));
-  python.stdin.end();
+    // spawn new child process to call the python script
+    const python = spawn('python', params);
   
-  // collect data from script
-  python.stdout.on('data', function (data) {
-   console.log('Pipe data from python script ...');
-   largeDataSet.push(data);
-  });
-  // in close event we are sure that stream from child process is closed
-  python.on('close', (code) => {
-  console.log(`child process close all stdio with code ${code}`);
-  // send data to browser
-  console.log(largeDataSet.join(""));
-  });
- }
+    python.stdin.write(JSON.stringify(JSON.stringify(listOfDocs)+'\n'+ JSON.stringify(documentIdList)));
+    // python.stdin.write(JSON.stringify(documentIdList));
+    python.stdin.end();
+    
+    // collect data from script
+    python.stdout.on('data', function (data) {
+    console.log('Pipe data from python script ...');
+    stdout.push(data);
+    });
+    python.stderr.on('data', function (data) {
+      console.log('Pipe Error data from python script ...');
+      stderr.push(data);
+    });
+    // in close event we are sure that stream from child process is closed
+    python.on('close', (code) => {
+    console.log(`child process close all stdio with code ${code}`);
+    if (code === 0) {
+      console.log(stdout.join(""));
+      resolve("SUCCESS");
+    } else {
+      console.log(stdout.join(""));
+      console.log(stderr.join(""));
+      reject("ERROR");
+    }
+    });
+  })
+}
 
- async function callPythonScripts(listOfDocs, indexName, documentIdList) {
+ async function callPythonScripts(listOfDocs, indexName, documentIdList, userId, sendStream) {
    
   let dir = path.join(__dirname, ".././model_csv_files");
 
@@ -80,17 +97,32 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
       fs.mkdirSync(collectionPath);
     }
   }
-  spawnPythonScripts([path.join(__dirname, "pythonScripts/lda_Script.py"), 'document_list', indexName], listOfDocs);
-  const Doc2Vec = await spawnPythonScripts([path.join(__dirname, "pythonScripts/doc2vec_Script.py"), 'document_list', indexName], listOfDocs);
-  if(Doc2Vec){
-    spawnUmapScripts([path.join(__dirname, "pythonScripts/tsne_umap_Script.py"), 'Doc2vec_Model', 'document_list', indexName], listOfDocs, documentIdList);
+
+  sendStream(userId, "Building Topics");
+  const ldaScript = await spawnPythonScripts([path.join(__dirname, "pythonScripts/lda_Script.py"), 'document_list', indexName], listOfDocs);
+  if (ldaScript === "SUCCESS") {
+    sendStream(userId, "Topics Build Successfully");
+  } else {
+    sendStream(userId, "Topics Build Failed");
   }
-  // Add code here for dispatching messages to Queue or any pooling services
-} 
+  sendStream(userId, "Building Model");
+  const Doc2Vec = await spawnPythonScripts([path.join(__dirname, "pythonScripts/doc2vec_Script.py"), 'document_list', indexName], listOfDocs);
+  if (Doc2Vec === "SUCCESS") {
+    sendStream(userId, "Model Build Successfully, Building Projections");
+    const umapScript = await spawnUmapScripts([path.join(__dirname, "pythonScripts/tsne_umap_Script.py"), 'Doc2vec_Model', 'document_list', indexName], listOfDocs, documentIdList)
+    if (umapScript === "SUCCESS") {
+      sendStream(userId, "Projections Build Successfully");
+    } else {
+      sendStream(userId, "Projections Build Failed");
+    }
+  } else {
+    sendStream(userId, "Model Build Failed");
+  }
+}
 
 
 // Clear the ES index, parse and index all files from the book directory
-async function readAndInsertData (index, file, column, res) {
+async function readAndInsertData (index, file, column, res, userId, sendStream) {
   let csvData = [];
   let pythonScriptInput = [];
   let documentIdList = [];
@@ -148,14 +180,14 @@ async function readAndInsertData (index, file, column, res) {
       // Insert the last rows which are less than 500
       insertDataIntoES(csvData, index, 'doc',column, batchCounter);
       // Calling python script with data
-      callPythonScripts(pythonScriptInput, index, documentIdList);
+      callPythonScripts(pythonScriptInput, index, documentIdList, userId, sendStream);
       res.json({
         status: "success",
+        message: "Collection Build Successful..!"
       });
     })
-    
   } catch(err) {
-  console.error(err);
+    console.error(err);
   }
 }
 

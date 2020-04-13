@@ -9,6 +9,7 @@ import {
   NavLink,
   Container
 } from 'reactstrap';
+import { Link } from 'react-router-dom';
 
 class AppNavbar extends Component {
   state = {
@@ -27,8 +28,11 @@ class AppNavbar extends Component {
         <Navbar color="dark" dark expand="sm" className="mb-5">
           <Container>
             <NavbarBrand style= {{ color: "antiquewhite" }}>ELA</NavbarBrand>
-            <NavbarBrand href="/upload">File Upload</NavbarBrand>
-            <NavbarBrand href="/search">Search</NavbarBrand>
+            <NavbarBrand>
+              <Link style={{ color: "#E4E4E4", textDecoration: "none"}} to="/upload">File Upload</Link></NavbarBrand>
+            <NavbarBrand>
+              <Link style={{ color: "#E4E4E4", textDecoration: "none"}} to="/search">Search</Link>
+              </NavbarBrand>
             <NavbarToggler onClick={this.toggle} />
             <Collapse isOpen={this.state.isOpen} navbar>
               <Nav className="ml-auto" navbar>

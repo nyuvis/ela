@@ -2,8 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const onHeaders = require('on-headers');
 const bodyParser = require('body-parser');
+const compression = require('compression')
 
 const app = new express();
+app.use(compression())
 
 // Listening to setting response headers
 const myMiddleware = (req, res, next) => {

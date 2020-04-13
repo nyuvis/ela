@@ -5,6 +5,7 @@ import Toaster from '../components/Toaster';
 import 'react-toastify/dist/ReactToastify.min.css';
 import IndexFileSelectionContainer from './IndexFileSelectionContainer';
 import SpinnerComponent from '../components/Spinner';
+import 'eventsource-polyfill';
 
 class FileUploadContainer extends Component {
 
@@ -101,10 +102,14 @@ class FileUploadContainer extends Component {
           loading: true,
           loadingStatus: 'Building Collection....'
         })
+        
         const res = await ApiService.fileUploadToBuildIndex(
           this.state.file, 
           this.state.selectedColumn,
-          this.state.index);
+          this.state.index,
+          this.props.userId
+          );
+
         if (res.status) {
           this.setState({
             loading: false,
@@ -130,7 +135,7 @@ class FileUploadContainer extends Component {
   render() {
     return (
       <div>
-        {this.state.loading && (<SpinnerComponent message={this.state.loadingStatus} />)}
+        
         {this.state.message && <Toaster message={this.state.message} />}
           <FileUpload
             handleFileSelect={this.handleFileSelect}
@@ -146,6 +151,7 @@ class FileUploadContainer extends Component {
               onChangeHandler={this.onChangeHandler}
             />
             }
+        {this.state.loading && (<SpinnerComponent message={this.state.loadingStatus} />)}
       </div>
     );
   }
