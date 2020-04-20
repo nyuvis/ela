@@ -81,7 +81,7 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
   })
   }
  
- async function callPythonScripts(listOfDocs, indexName, documentIdList, userId, sendStream) {
+ async function callPythonScripts(listOfDocs, indexName, documentIdList, userId, sendStream, stopwordlist) {
 
   let dir = path.join(__dirname, ".././"+DOC_FOLDER_NAME);
   
@@ -98,17 +98,17 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
     }
   }
   sendStream(userId, "Building Topics");
-  const ldaScript = await spawnPythonScripts([path.join(__dirname, "pythonScripts/lda_Script.py"), 'document_list', indexName, DOC_FOLDER_NAME], listOfDocs);
+  const ldaScript = await spawnPythonScripts([path.join(__dirname, "pythonScripts/lda_Script.py"), 'document_list', indexName, DOC_FOLDER_NAME, stopwordlist], listOfDocs);
   if (ldaScript === "SUCCESS") {
     sendStream(userId, "Topics Build Successfully");
   } else {
     sendStream(userId, "Topics Build Failed");
   }
   sendStream(userId, "Building Model");
-  const Doc2Vec = await spawnPythonScripts([path.join(__dirname, "pythonScripts/doc2vec_Script.py"), 'document_list', indexName, DOC_FOLDER_NAME], listOfDocs);
+  const Doc2Vec = await spawnPythonScripts([path.join(__dirname, "pythonScripts/doc2vec_Script.py"), 'document_list', indexName, DOC_FOLDER_NAME, stopwordlist], listOfDocs);
   if (Doc2Vec === "SUCCESS") {
     sendStream(userId, "Model Build Successfully, Building Projections");
-    const umapScript = await spawnUmapScripts([path.join(__dirname, "pythonScripts/umap_Script.py"), 'Doc2vec_Model', 'document_list', indexName, DOC_FOLDER_NAME], listOfDocs, documentIdList)
+    const umapScript = await spawnUmapScripts([path.join(__dirname, "pythonScripts/umap_Script.py"), 'Doc2vec_Model', 'document_list', indexName, DOC_FOLDER_NAME, stopwordlist], listOfDocs, documentIdList)
     if (umapScript === "SUCCESS") {
       sendStream(userId, "Projections Build Successfully");
     } else {
@@ -121,7 +121,7 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
 
 
 // Clear the ES index, parse and index all files from the book directory
-async function readAndInsertData (index, file, column, res, userId, sendStream) {
+async function readAndInsertData (index, file, column, res, userId, sendStream, stopwordlist) {
   let csvData = [];
   let pythonScriptInput = [];
   let documentIdList = [];
@@ -129,19 +129,23 @@ async function readAndInsertData (index, file, column, res, userId, sendStream) 
   let headerList;
   let batchCounter = 0;
   let documentId = 1;
+  let regex;
 
   try {
     // fix separator
       let fileSeparator;
       if (file.originalname.includes(".csv")) {
         fileSeparator = ',';
+        regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
       } else if (file.originalname.includes(".tsv")) {
         fileSeparator = '\t';
+        regex = fileSeparator;
       } else if (file.originalname.includes(".psv")) {
         fileSeparator = '|';
+        regex = fileSeparator;
       }
     //Clear previous index
-    await esConnection.resetIndex(index, 'doc');
+    await esConnection.resetIndex(index, 'doc', stopwordlist);
 
     // Read selected column record from filePath, and index each record in elasticsearch
     streamifier.createReadStream(file.buffer)
@@ -155,7 +159,7 @@ async function readAndInsertData (index, file, column, res, userId, sendStream) 
     })
     .on('data', (row) => {
       if(row[headersToRem]){
-        const contentList = row[headersToRem].split(fileSeparator);
+        const contentList = row[headersToRem].split(regex);
         const record = {};
         for(i=0;i<headerList.length;i++) {
           if(headerList[i] === column) {
@@ -179,7 +183,7 @@ async function readAndInsertData (index, file, column, res, userId, sendStream) 
       // Insert the last rows which are less than 500
       insertDataIntoES(csvData, index, 'doc',column, batchCounter);
       // Calling python script with data
-      callPythonScripts(pythonScriptInput, index, documentIdList, userId, sendStream);
+      callPythonScripts(pythonScriptInput, index, documentIdList, userId, sendStream, stopwordlist);
       res.json({
         status: "success",
         message: "Collection Build Successful..!"

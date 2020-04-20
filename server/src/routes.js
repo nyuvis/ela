@@ -94,7 +94,67 @@ const sendStream = async (userId, data) => {
   global.usersStreams[userId].lastInteraction = Date.now();
 };
 
+// @route POST /previewData
+// @desc  return a list of 50 rows 
+// @access Public
+router.post('/previewData', upload.single('file'), (req, res, next) => {
+  let csvData = [];
+  let headersToRem;
+  let headerList;
+  let regex;
 
+  try {
+    let fileSeparator;
+    if (req.file.originalname.includes(".csv")) {
+      fileSeparator = ',';
+      regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
+    } else if (req.file.originalname.includes(".tsv")) {
+      fileSeparator = '\t';
+      regex = fileSeparator;
+    } else if (req.file.originalname.includes(".psv")) {
+      fileSeparator = '|';
+      regex = fileSeparator;
+    }
+    const file = req.file.buffer;
+    const column = req.body.column;
+    // Read selected column record from filePath, and index each record in elasticsearch
+    streamifier.createReadStream(file)
+    .on('error', () => {
+      console.log("file not present")
+    })
+    .pipe(csv({ separator: '\n'}))
+    .on('headers', (headers) => {
+      headersToRem = headers;
+      headerList = headersToRem[0].split(fileSeparator);
+    })
+    .on('data', (row) => {
+      if((csvData.length <= 49) && row[headersToRem]){
+        const contentList = row[headersToRem].split(regex);
+        const record = {};
+        for(i=0;i<headerList.length;i++) {
+          if(headerList[i] === column) {
+            record[headerList[i]]= contentList[i];
+          }
+        }
+        csvData.push(record);
+      }
+    })
+    .on('end', () =>{
+      res.json({
+        status: "success",
+        data: csvData
+      });
+    })
+  } catch (error) {
+    let err = new Error(`Invalid File`);
+    err.statusCode = 400;
+    next(err);
+  }
+})
+
+// @route POST /getColumnTypes
+// @desc  return a list of column in file
+// @access Public
 router.post('/getColumnTypes', upload.single('file'), (req, res, next) => {
     try {
       let fileSeparator;
@@ -129,9 +189,10 @@ router.post('/buildIndex/:userId',upload.single('file'), (req, res, next) => {
   const index = req.body.indexName;
   const file = req.file;
   let userId = getUserId(req);
+  const stopwordlist = (req.body.stopwordlist.length>1) ? req.body.stopwordlist.trim().split(/\s*,\s*/): [];
   try {
     // pushing data into elastic Search and feeding the same data to train model
-    loadData.readAndInsertData(index, file, column, res, userId, sendStream);
+    loadData.readAndInsertData(index, file, column, res, userId, sendStream, stopwordlist);
   } catch (error) {
     let err = new Error(`Error in building Index`);
     err.statusCode = 500;

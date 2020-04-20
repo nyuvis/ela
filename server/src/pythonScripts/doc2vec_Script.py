@@ -47,13 +47,18 @@ if __name__ == "__main__":
   input_type = sys.argv[1]
   collectionName = sys.argv[2]
   docFolderName = sys.argv[3]
+  stopwordlist = sys.argv[4]
   input_value = json.loads(sys.stdin.readlines()[0])
   # transforming input into required format
   path =  os.path.abspath(os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)), os.pardir))
+  if len(stopwordlist) > 1 :
+    stopwords_add = stopwordlist.split(',')
+  else:
+    stopwords_add = []
   
   try:
     pass
-    transformed_Inp_Obj = TransformInput(input_type, input_value)
+    transformed_Inp_Obj = TransformInput(input_type, input_value, stopwords_add)
 
     # list_of_list_of_words is [['word',..], ['word',...],....] type input
     list_of_list_of_words = transformed_Inp_Obj.transformInput()

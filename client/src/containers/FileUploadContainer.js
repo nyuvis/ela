@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.min.css';
 import IndexFileSelectionContainer from './IndexFileSelectionContainer';
 import SpinnerComponent from '../components/Spinner';
 import 'eventsource-polyfill';
+import PreviewModal from './PreviewModal';
 
 class FileUploadContainer extends Component {
 
@@ -21,6 +22,9 @@ class FileUploadContainer extends Component {
       index: '',
       loading: false,
       loadingStatus: '',
+      modal: false,
+      previewData: [],
+      stopwordlist: ''
     };
   }
 
@@ -95,6 +99,49 @@ class FileUploadContainer extends Component {
     })
   }
 
+  getPreview = async () => {
+    try {
+      if (this.state.selectedColumn && this.state.index.length) {
+        this.setState({
+          loading: true,
+          loadingStatus: 'Building Preview....'
+        })
+        const res = await ApiService.getPreviewDataOfColumn(
+          this.state.file, 
+          this.state.selectedColumn,
+          );
+
+        if (res.status) {
+          this.setState({
+            modal: true,
+            previewData: res.data
+          })
+          this.setState({
+            loading: false,
+            loadingStatus: '',
+            message: "Preview Data Ready...",
+          })
+          setTimeout(() =>{
+            this.setState({
+              message: '',
+            })
+          }, 2000);
+          };
+      }
+    } catch (error) {
+      this.setState({
+        loading: false,
+        loadingStatus: '',
+        message: '',
+        modal: false,
+        previewData: []
+      })
+      console.log(error);
+    }
+  }
+
+
+
   buildIndex = async () => {
     try {
       if (this.state.selectedColumn && this.state.index.length) {
@@ -102,12 +149,12 @@ class FileUploadContainer extends Component {
           loading: true,
           loadingStatus: 'Building Collection....'
         })
-        
         const res = await ApiService.fileUploadToBuildIndex(
           this.state.file, 
           this.state.selectedColumn,
           this.state.index,
-          this.props.userId
+          this.props.userId,
+          this.state.stopwordlist
           );
 
         if (res.status) {
@@ -121,9 +168,16 @@ class FileUploadContainer extends Component {
               message: '',
             })
           }, 2000);
-          };
+        };
       }
     } catch (error) {
+      this.setState({
+        loading: false,
+        loadingStatus: '',
+        message: '',
+        modal: false,
+        previewData: []
+      })
       console.log(error);
     }
   }
@@ -132,11 +186,34 @@ class FileUploadContainer extends Component {
     this.setState({ [e.target.name]: e.target.value.toLowerCase() })
   }
 
+  toggle = () => {
+    this.setState({
+      modal: !this.state.modal
+    })
+  }
+
+  onSubmit = e => {
+    e.preventDefault();
+    this.toggle();
+    this.buildIndex();
+  }
+
+  onChange = (e) => {
+    this.setState({ [e.target.name]: e.target.value })
+  }
+
   render() {
     return (
       <div>
-        
-        {this.state.message && <Toaster message={this.state.message} />}
+          {this.state.modal && <PreviewModal
+            modal={this.state.modal} 
+            toggle={this.toggle}
+            onSubmit={this.onSubmit}
+            onChange={this.onChange}
+            previewData={this.state.previewData}
+            column={this.state.selectedColumn}
+          />}
+        {this.state.message && <Toaster message={this.state.message} autoClose={true} />}
           <FileUpload
             handleFileSelect={this.handleFileSelect}
             uploadFileToSelectColumn={this.uploadFileToSelectColumn}
@@ -147,7 +224,7 @@ class FileUploadContainer extends Component {
               list={this.state.columnList} 
               onSelect={this.onColumnSelect}
               selectedColumn={this.state.selectedColumn}
-              buildIndex={this.buildIndex}
+              buildIndex={this.getPreview}
               onChangeHandler={this.onChangeHandler}
             />
             }

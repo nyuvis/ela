@@ -9,7 +9,9 @@ class Toaster extends Component {
     this.notify(this.props.message);
   }
 
-  notify = (message) => toast(message);
+  notify = (message) => toast(message, {
+    autoClose: this.props.autoClose
+  });
   
   render () {
     return (

@@ -18,6 +18,23 @@ export class ApiService {
     }
   }
 
+  getPreviewDataOfColumn = (file, column) => {
+    try {
+      const data = new FormData();
+      data.append('file', file);
+      data.append('column', column);
+      return axios
+        .post(`${process.env.REACT_APP_TO_DO_ITEMS_API}/previewData`, data ,{
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        .then(res => res.data)
+    } catch (err) {
+      console.log('File upload failed...', err);
+    }
+  }
+
   fileUploadToSelectColumn = (file) => {
     try {
       const data = new FormData();
@@ -34,12 +51,13 @@ export class ApiService {
     }
   }
 
-  fileUploadToBuildIndex = (file, column, indexName, userId) => {
+  fileUploadToBuildIndex = (file, column, indexName, userId, stopwordlist) => {
     try {
       const data = new FormData();
       data.append('file', file);
       data.append('column', column);
       data.append('indexName', indexName);
+      data.append('stopwordlist', stopwordlist);
       return axios
         .post(`${process.env.REACT_APP_TO_DO_ITEMS_API}/buildIndex/:${userId}`, data, {
           headers: {

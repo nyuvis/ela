@@ -46,6 +46,7 @@ if __name__ == "__main__":
   input_type = sys.argv[2]
   collectionName = sys.argv[3]
   docFolderName = sys.argv[4]
+  stopwordlist = sys.argv[5]
   input_stream = json.loads(sys.stdin.readlines()[0])
   input_args = input_stream.split('\n')
   input_value = json.loads(input_args[0])
@@ -53,10 +54,15 @@ if __name__ == "__main__":
   
   path =  os.path.abspath(os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)), os.pardir))
 
+  if len(stopwordlist) > 1 :
+    stopwords_add = stopwordlist.split(',')
+  else:
+    stopwords_add = []
+
   
   try:
 
-    transformed_Inp_Obj = TransformInput(input_type, input_value)
+    transformed_Inp_Obj = TransformInput(input_type, input_value, stopwords_add)
 
     # list_of_list_of_words is [['word',..], ['word',...],....] type input
     # the input can be more refined by analyzing bigrams, trigrams and lemmatizing the words for analysis as per requirements

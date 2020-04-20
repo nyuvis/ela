@@ -59,11 +59,11 @@ class App extends Component {
     this.setState({
       toastMessage,
     })
-    setTimeout(() => {
-      this.setState({
-        toastMessage: '',
-      })
-    }, 10000);
+    // setTimeout(() => {
+    //   this.setState({
+    //     toastMessage: '',
+    //   })
+    // }, 10000);
   }
 
   render() {
@@ -72,7 +72,7 @@ class App extends Component {
         <Router>
           <AppNavbar />
           <Container>
-            {this.state.toastMessage && <Toaster message={this.state.toastMessage} />}
+            {this.state.toastMessage && <Toaster message={this.state.toastMessage} autoClose={false}/>}
             <Switch>
               <Route exact path="/">
                 <HomeContainer />

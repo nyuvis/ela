@@ -17,7 +17,7 @@ class ReadTextFiles(object):
 
 
 class TransformInput(object):
-  def __init__(self, inputType, value):
+  def __init__(self, inputType, value, stopwordlist):
     self.inputType = inputType
     self.value = value
     self.stopwords = [
@@ -46,7 +46,7 @@ class TransformInput(object):
       'seen', 'sent', 'serious', 'shall', 'she', 'six', 'so', 'someone', 'something', 'somewhere', 'soon', 'specifying', 'still', 'sure', 't’s', 'tends', 'th', 'thanx', 'that', 'their', 'theirs', 'thence', 'there',
       'therefore', 'therein', 'they', 'they’d', 'think', 'third', 'those', 'though', 'thru', 'thus', 'took', 'toward', 'truly', 'try', 'un', 'under', 'until', 'unto', 'use', 'used', 'usually', 'value', 'viz', 'vs',
       'wasn’t', 'way', 'we’re', 'we’ve', 'were', 'weren’t', 'when', 'whence', 'whereafter', 'whereas', 'wherever', 'whether', 'who', 'who’s', 'whose', 'why', 'with', 'within', 'would', 'wouldn’t', 'you’d', 'you’ll',
-      'yours', 'yourself']
+      'yours', 'yourself'] + stopwordlist
   
   def __str__(self):
     return '{} {}'.format(self.inputType, self.value)
@@ -57,7 +57,6 @@ class TransformInput(object):
       # document_list is list variable with all the data in list ['sentence or document 1', 'sentence or document 2']
       # add preprocessing here as it suits your application
       documents = self.value
-
       # Cleaning documents
       documentsWithoutPunctuation = [re.sub(r'[!,.:;-](?= |$)',r'',text) for text in documents]
       textsWithoutStopWords = [[word for word in simple_preprocess(str(doc)) if word not in self.stopwords] for doc in documentsWithoutPunctuation]

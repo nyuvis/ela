@@ -24,20 +24,35 @@ async function checkConnection () {
 }
 
 // Clear the index, recreate it and add mappings
-async function resetIndex (index, type) {
+async function resetIndex (index, type, stopwordlist) {
   index = index;
   type = type;
   if (await client.indices.exists({ index })) {
     await client.indices.delete({ index })
   }
-  await client.indices.create({ index })
+  await client.indices.create({ 
+    index,
+    body : {
+      settings: {
+        "analysis": {
+          "analyzer": {
+            "std_english": { 
+              "type":      "standard",
+              "ignore_case": true,
+              "stopwords": ["_english_", ...stopwordlist]
+            }
+          }
+        }
+      }
+    }
+  })
   await putDataMapping(index, type)
 }
 
 async function putDataMapping (index, type) {
   const schema = {
     location: { type: 'integer' },
-    text: { type: 'text' }
+    text: { type: 'text' , analyzer: "std_english" }
   }
   return client.indices.putMapping({ index, type, body: { properties: schema }})
 }
