@@ -8,6 +8,9 @@ class Toaster extends Component {
   componentDidMount() {
     this.notify(this.props.message);
   }
+  componentDidUpdate() {
+    this.notify(this.props.message);
+  }
 
   notify = (message) => toast(message, {
     autoClose: this.props.autoClose

@@ -64,7 +64,7 @@ class LDA_Doc(object):
     for t in range(self.model.num_topics):
       topics_list.append([x[0] for x in self.model.show_topic(t)])
 
-    with open(path+'/'+docFolderName+'/'+collectionName+'/lda_text.csv','w') as out:
+    with open(path+'/'+docFolderName+'/'+collectionName+'/lda_text.csv','w', newline='') as out:
       csv_out=csv.writer(out)
       for row in topics_list:
           csv_out.writerow(row)
@@ -86,24 +86,24 @@ if __name__ == "__main__":
   try:
     transformed_Inp_Obj = TransformInput(input_type, input_value, stopwords_add)
 
-    # # list_of_list_of_words is [['word',..], ['word',...],....] type input
-    # # the input can be more refined by analyzing bigrams, trigrams and lemmatizing the words for analysis as per requirements
-    # list_of_list_of_words = transformed_Inp_Obj.transformInput()
+    # list_of_list_of_words is [['word',..], ['word',...],....] type input
+    # the input can be more refined by analyzing bigrams, trigrams and lemmatizing the words for analysis as per requirements
+    list_of_list_of_words = transformed_Inp_Obj.transformInput()
 
-    # # Initialize Document2Vector instance with list of list of words
-    # lda_obj = LDA_Doc(list_of_list_of_words)
+    # Initialize Document2Vector instance with list of list of words
+    lda_obj = LDA_Doc(list_of_list_of_words)
 
-    # # create tagged document as input for doc2vec model
-    # lda_obj.create_dictionary()
+    # create tagged document as input for doc2vec model
+    lda_obj.create_dictionary()
 
-    # # initialize model with vector size 100 and set min count as 2 for now
-    # lda_obj.create_corpus()
+    # initialize model with vector size 100 and set min count as 2 for now
+    lda_obj.create_corpus()
 
-    # # build vocab using the training data
-    # lda_obj.create_lda_model()
+    # build vocab using the training data
+    lda_obj.create_lda_model()
 
-    # # once the Object is trained, save the model model for creating vectors for Docs
-    # lda_obj.saving_topicsKeywords_to_csv(path, collectionName, docFolderName)
+    # once the Object is trained, save the model model for creating vectors for Docs
+    lda_obj.saving_topicsKeywords_to_csv(path, collectionName, docFolderName)
 
   except ValueError:
     print("Invalid parameters")
