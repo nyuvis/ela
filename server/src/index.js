@@ -3,8 +3,11 @@ const cors = require('cors');
 const onHeaders = require('on-headers');
 const bodyParser = require('body-parser');
 const compression = require('compression')
+const path = require('path');
 
 const app = new express();
+
+app.use(express.static(path.join(__dirname,  '../../', 'client', 'build')));
 app.use(compression())
 
 // Listening to setting response headers
@@ -44,6 +47,13 @@ app.use((err, req, res, next) => {
     message: err.message
   });
 })
+
+
+
+
+app.get('/*', function(req, res) {
+    res.sendFile(path.join(__dirname, '../../', 'client', 'build', 'index.html'));
+});
 
 const port = process.env.PORT || 3001
 
