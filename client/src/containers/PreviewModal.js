@@ -30,12 +30,12 @@ const PreviewModal = ({modal, toggle, onSubmit, onChange, previewData, column}) 
               </div>
           
               <FormGroup style={{ marginBottom: "1rem", padding: "1rem" }}>
-                <Label for="items">Add Stopwords (eg. word1, word2...)</Label>
+                <Label for="items">Remove words (eg. word1, word2...)</Label>
                 <Input
                   type="text"
                   name="stopwordlist"
                   id="item"
-                  placeholder="Add Stopwords like word1, word2...)"
+                  placeholder="Add words to remove like word1, word2...)"
                   onChange={onChange} />
                   <div style={{
                     display: "flex",
