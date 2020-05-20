@@ -117,9 +117,9 @@ class SearchContainer extends Component {
           <StyledSearchBox>
             <div className="select-div">
               <FormGroup style={{ width: '48%', marginLeft: '2%'}}>
-                <Label for="exampleSelect">Select Index</Label>
+                <Label for="exampleSelect">Select Collection</Label>
                 <Input type="select" name="select" id="exampleSelect" onChange={this.selectIndex} value={this.state.selectIndex}>
-                {this.state.availableIndexes.length == 0 ? (<option key="noindex" value="">No Index Present</option>): (<option key="selectindex" value="">Select Index</option>)}
+                {this.state.availableIndexes.length == 0 ? (<option key="noindex" value="">No Collection Present</option>): (<option key="selectindex" value="">Select Collection</option>)}
                   {this.state.availableIndexes.length > 0 && this.state.availableIndexes.map((index) => {
                     return (<option key={index} value={index}>{index}</option>)
                   })}
@@ -132,7 +132,7 @@ class SearchContainer extends Component {
             </div>
             {this.state.showAlert &&
                 (<Alert style={{marginTop: '1%'}} color="danger">
-                Select the index to search.....!
+                Select the Collection to search.....!
               </Alert>)
               }
             {this.state.selectIndex && (
