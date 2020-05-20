@@ -2,7 +2,7 @@ version: '3'
 
 services: 
   api:
-    container_name: node-react-api
+    container_name: node-react-api-merge
     build:  # it will look for Dockerfile in current directory to build the image
       context: .
       dockerfile: Dockerfile
@@ -17,10 +17,8 @@ services:
      - ES_HOST=elasticsearch
      - PORT=3000
 
-  
-  
   elasticsearch: # Elasticsearch Instance
-    container_name: es-search-api
+    container_name: es-search-api-merge
     image: docker.elastic.co/elasticsearch/elasticsearch:6.1.1
     volumes: # Persist ES data in seperate "esdata" volume
       - esdata:/usr/share/elasticsearch/data
@@ -31,6 +29,65 @@ services:
     ports: # Expose ElasticSearch ports
       - "9300:9300"
       - "9200:9200"
+
+  texas-api:
+    container_name: texas-api-merge
+    image: texas-api-img
+    environment:
+      ES_DEFAULT_HOST: $ES_DEFAULT_HOST
+      ES_DEFAULT_PORT: $ES_DEFAULT_PORT
+      ES_DEFAULT_PATH: $ES_DEFAULT_PATH
+    build:
+      context: ./texas
+      dockerfile: ./apps/texas-server/Dockerfile  #check this location for the docker file
+      args:
+      - API_PORT
+      - AUTH_SECRET
+    ports:
+    - $API_PORT:$API_PORT
+    - 5555:5555
+    - 5556:5556
+    
+    volumes:
+    - ./texas:/app
+    - $RUNTIME/data:/data
+    - $RUNTIME/projections:/nlp/projections
+
+    - /app/node_modules
+    - /app/apps/texas-server/node_modules
+    - /app/apps/texas-cli/node_modules
+    - /app/lib/texas-js/node_modules
+    - /app/lib/texas-utils/node_modules
+    - /app/lib/texas-gql/node_modules
+    stdin_open: true
+    tty: true
+    command: npm start
+
+  texas-nlp:
+    build:
+      context: ./texas-nlp/texas
+      args:
+        - LIBS
+
+    image: texas-nlp-img
+    environment:
+      JUPYTER_PORT: $JUPYTER_PORT
+      ES_DEFAULT_HOST: $ES_DEFAULT_HOST
+      ES_DEFAULT_PORT: $ES_DEFAULT_PORT
+      ES_DEFAULT_PATH: $ES_DEFAULT_PATH
+      TEXAS_DEFAULT_URL: $TEXAS_DEFAULT_URL
+    stdin_open: true
+    tty: true
+    container_name: texas-nlp-merge
+    volumes:
+      - $NLP_DATA:/data
+      - $NLP_DATA:/app/data
+      - ./texas-nlp/texas:/app/texas
+      - $NOTEBOOKS:/app/notebooks
+      - $RUNTIME/projections:/nlp/projections
+    command: python /app/texas/server/server.py
+    ports:
+      - $JUPYTER_PORT:8888
 
 volumes: 
   esdata:

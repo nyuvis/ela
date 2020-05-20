@@ -1,0 +1,13 @@
+type SystemMutations {
+    createUser(user: UserInput): User
+    signIn(email: String!, password: String!): Credential
+    guestSession(guest: String): Credential
+    resetPassword(
+        email: String!
+        password: String!
+        newPassword: String!
+    ): Boolean
+    addGroupUser(email: String!, group: String!): User
+    createDataset(dataset: InputDataset): Dataset
+    deleteDataset(ID: ID): Boolean
+}

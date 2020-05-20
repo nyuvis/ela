@@ -1,0 +1,23 @@
+type Query {
+    User: User
+    Users: [User]
+    Dataset(ID: ID): Dataset
+    Datasets: [Dataset]
+    Store(ID: String): Store
+    Stores: [Store]
+}
+
+type Mutation {
+    System: SystemMutations
+    Store(ID: String): StoreMutations
+}
+
+type Subscription {
+    tickTock: String
+}
+
+schema {
+    query: Query
+    mutation: Mutation
+    subscription: Subscription
+}

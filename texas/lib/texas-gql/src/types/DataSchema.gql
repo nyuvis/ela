@@ -1,0 +1,55 @@
+enum DataType {
+    CATEGORICAL
+    TEXT
+    DATE
+    INTEGER
+    DECIMAL
+    INT
+}
+
+type Schema {
+    Fields: [Field]
+}
+
+type Field {
+    ID: String
+    Description: String
+    Name: String
+    Type: DataType
+}
+
+input InputSchema {
+    Fields: [InputField]
+}
+
+input InputField {
+    ID: String!
+    Description: String
+    Name: String
+    Type: DataType!
+}
+
+type FieldStats {
+    #how many documents contain this field
+    DocCount: Int
+    #the sum of document frequencies for all terms in this field
+    DocFrequency: Int
+    #the sum of total term frequencies of each term in this field
+    TermFrequency: Int
+    TermVectors: [TermVector]
+}
+
+type TermVector {
+    Term: String
+    TotalDocFrequency: Int
+    TotalTermFrequency: Int
+    TermFrequency: Int
+    TFIDF: Float
+    Tokens: [Token]
+}
+
+type Token {
+    Position: Int
+    StartOffset: Int
+    EndOffset: Int
+}

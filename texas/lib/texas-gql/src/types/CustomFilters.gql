@@ -1,0 +1,23 @@
+enum ScoredKeywordsFilterFunction {
+    SIGMOID
+}
+
+input ScoredKeywordsFilter {
+    function: ScoredKeywordsFilterFunction
+    keywords: [KeywordInput]
+    threshold: Float
+}
+
+# Rules --------------------
+
+input Rule {
+    field: String
+    rule: String!
+    if: Boolean = true
+    then: Boolean = true
+}
+
+input RuleList {
+    defaultField: String
+    rules: [Rule]
+}

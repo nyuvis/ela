@@ -1,0 +1,157 @@
+type Stat {
+  Name: String
+  Value: Float
+}
+
+type SummaryItem {
+  Key: String
+  KeyAsString: String
+  #depecreated
+  Stat: Float
+  Score: Float
+  Count: Float
+  OtherStats: [Stat]
+}
+
+type SummaryItem2D {
+  IdxX: Int
+  IdxY: Int
+  KeyX: String
+  KeyY: String
+  KeyXAsString: String
+  KeyYAsString: String
+  Count: Float
+}
+
+type AdjMatrixNode {
+  Key: String
+  Count: Int
+}
+
+type AdjMatrixLink {
+  Key: [String]
+  Count: Int
+}
+
+input AdjMatrixFilter {
+  Name: String!
+  Filter: Filter!
+}
+
+type AdjMatrix {
+  Nodes: [AdjMatrixNode]
+  Links: [AdjMatrixLink]
+}
+
+input SplitFilter {
+  Key: String!
+  Filter: Filter
+}
+
+type Split {
+  Key: String!
+  Size: Int
+  Values(
+    field: String
+    include: [String]
+    exclude: [String]
+    interval: String
+    feature: String
+    tokenized: Boolean
+    size: Int
+    discriminant: Boolean
+  ): [SummaryItem]
+}
+
+enum SortByOrder {
+  ASC
+  DESC
+  RANDOM
+}
+
+input SortBy {
+  #Use _score_ for score
+  Field: String
+  Order: SortByOrder
+}
+
+type FieldStat {
+  Max: Float
+  Min: Float
+  Avg: Float
+  Sum: Float
+  Count: Int
+}
+
+type Select {
+  Size: Int
+  Documents(size: Int, from: Int, sortBy: SortBy): [Document]
+  NativeQuery: JSON
+  CountDistinct(field: String, feature: String): Int
+  Values(
+    field: String
+    include: [String]
+    exclude: [String]
+    interval: String
+    feature: String
+    tokenized: Boolean
+    size: Int
+    discriminant: Boolean
+  ): [SummaryItem]
+  Split(queries: [String], field: String, filters: [SplitFilter]): [Split]
+  Histogram(field: String, interval: String, format: String): [SummaryItem]
+  FieldStats(field: String, feature: String): FieldStat
+  Histogram2D(
+    field: String
+    fieldX: String
+    fieldY: String
+    featureX: String
+    featureY: String
+    interval: String
+    binsX: Int
+    binsY: Int
+    format: String
+  ): [SummaryItem2D]
+  AdjMatrix(
+    field: String
+    size: Int
+    labelFilters: [AdjMatrixFilter]
+  ): AdjMatrix
+  NLP: NLP
+  #deprecated
+  #Projection(field: String!, method: Projections, sample: Int): [[String]]
+  #Aggregate(field: String, include: [String], exclude: [String]): [SummaryItem]
+}
+
+enum Projections {
+  TSNE
+}
+
+input FeatureFilter {
+  name: String
+  exact: Boolean
+  values: [String]
+}
+
+input Filter {
+  field: String
+  feature: String
+  hasFeature: FeatureFilter
+  eq: String
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  in: [String]
+  all: [String]
+  query: [String]
+  and: [Filter]
+  or: [Filter]
+  not: [Filter]
+  ids: [ID]
+  likeThis: [String] #documentID
+  regex: String
+  dateFormat: String
+  scoredKeywords: ScoredKeywordsFilter
+  ruleList: RuleList
+}

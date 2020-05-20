@@ -1,0 +1,60 @@
+.App {
+    height: 100%;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+}
+
+#root {
+    height: 100%;
+}
+
+.errors {
+    color: red;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+.container {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.login-window {
+    box-shadow: 3px 3px 3px #ccc;
+    border: solid 1px #ccc;
+    padding: 20px;
+
+    width: 300px;
+}
+
+.field label {
+    width: 80px;
+    display: inline-block;
+}
+
+.field input {
+    width: 200px;
+    height: 20px;
+}
+
+.field {
+    margin-bottom: 20px;
+}
+
+.controls {
+    text-align: center;
+}
+
+.controls button {
+    border: none;
+    background-color: #2b8cbe;
+    color: white;
+    font-size: 14px;
+    padding: 5px 10px;
+}

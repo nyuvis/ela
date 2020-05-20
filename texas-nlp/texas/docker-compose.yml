@@ -1,0 +1,18 @@
+version: '3'
+
+services: 
+    texas_nlp:
+        build:
+            context: .
+        image: texas-nlp-img
+        env_file: .env
+        stdin_open: true
+        tty: true
+        container_name: texas-nlp
+        volumes:
+            - /Users/cristianfelix/Developer/Projects/NYU/texas-nlp/data:/data
+            - ${PWD}:/app/texas
+            - ${TXNLP_NOTEBOOKS}:/app/notebooks
+        command: python /app/texas/server/server.py
+        ports:
+            - 8888:8888

@@ -1,0 +1,21 @@
+{
+    "name": "texas-server",
+    "version": "0.2.0",
+    "description": "",
+    "main": "./src/index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev":
+            "nodemon -e js,gql -L --watch \"/Users/cristianfelix/Developer/Projects/NYU/texas (v2)\" ./src/index.js"
+    },
+    "dependencies": {
+        "express": "4.16.2",
+        "texas-gql": "0.2.0",
+        "texas-js": "0.2.0",
+        "texas-utils": "0.2.0",
+        "cors": "2.8.4",
+        "body-parser": "1.18.2"
+    },
+    "author": "",
+    "license": "ISC"
+}

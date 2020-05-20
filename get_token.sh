@@ -1,0 +1,1 @@
+docker exec texas-nlp jupyter notebook list

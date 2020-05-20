@@ -1,0 +1,31 @@
+modules: 
+  manager:
+    auth_secret: $AUTH_SECRET
+    connector:
+      name: loki
+      config:
+        data_file: /data/manager.db
+  
+  nlp:
+    projections_path: /nlp/projections
+    connector:
+      name: "texas-nlp"
+      config:
+        send_socket: tcp://*:5555
+        recv_socket: tcp://*:5556
+
+  store:
+    prefix: texas.store
+    connector:
+      name: "elasticsearch"
+      config:
+        client: 
+          hosts: 
+              - host: $ES_DEFAULT_HOST
+                port: $ES_DEFAULT_PORT
+                path: $ES_DEFAULT_PATH
+    
+
+server:
+  port: $API_PORT
+  

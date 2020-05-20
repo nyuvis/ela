@@ -1,0 +1,8 @@
+ /* .gqlconfig */
+{
+   "schema": {
+     "files": 'lib/texas-gql/src/types/**/*.gql'
+   }
+ }
+ 
+ 

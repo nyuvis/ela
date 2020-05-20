@@ -1,0 +1,48 @@
+type StoreDocument {
+    ID: ID!
+    Raw: JSON!
+    Field(name: String, ID: ID, type: DataType): DynScalar
+}
+
+type Store {
+    ID: ID!
+    Name: String!
+    Collections: [Collection]
+    Collection(ID: String, restrictToUser: Boolean): Collection
+}
+
+type Collection {
+    ID: ID
+    Name: String!
+    Schema: Schema
+    userRestricted: Boolean
+    Select(filter: Filter, ids: [ID]): Select
+}
+
+input StoreInput {
+    ID: ID
+    Name: String!
+}
+
+input CollectionInput {
+    ID: ID
+    Name: String!
+    Schema: InputSchema
+    userRestricted: Boolean
+}
+
+input StoreDocumentInput {
+    ID: ID
+    data: JSON!
+}
+
+type CollectionMutations {
+    addOrUpdate(document: JSON, ID: ID): Document
+    addOrUpdateMany(documents: [StoreDocumentInput]): Boolean
+}
+
+type StoreMutations {
+    createStore(store: StoreInput): Store
+    addCollection(collection: CollectionInput): Collection
+    Collection(ID: ID): CollectionMutations
+}

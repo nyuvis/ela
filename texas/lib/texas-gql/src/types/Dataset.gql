@@ -1,0 +1,18 @@
+type Dataset {
+    ID: ID!
+    Name: String
+    Provider: String
+    Config: JSON
+    Schema: Schema
+    Count: Int
+    Document(ID: ID): Document
+    Select(filter: Filter, ids: [ID]): Select
+    Metadata: JSON
+}
+
+input InputDataset {
+    Name: String!
+    Provider: String!
+    Config: JSON!
+    Schema: InputSchema
+}

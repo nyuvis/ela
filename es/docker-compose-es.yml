@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+    elasticsearch:
+        image: elasticsearch-img
+        build:
+            context: ./es
+        container_name: elasticsearch
+        ulimits:
+          nofile:
+            soft: 262144
+            hard: 262144
+        environment:
+          - "ES_JAVA_OPTS=-Xms$ES_MEMORY -Xmx$ES_MEMORY"
+          - "http.cors.enabled=true"
+          - "http.cors.allow-origin=/.*/"
+          - "http.cors.allow-credentials=true"
+          - "http.cors.allow-methods=OPTIONS, HEAD, GET, POST, PUT, DELETE"
+          - "http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type, Content-Length, Authorization"
+
+        ports:
+          - 9900:9200
+        volumes:
+          - $ES_DATA_PATH:/usr/share/elasticsearch/data

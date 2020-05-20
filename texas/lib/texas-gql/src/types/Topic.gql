@@ -1,0 +1,5 @@
+type KeywordTopic {
+    ID: ID
+    Topic: String
+    Keywords: [Keyword]
+}

@@ -1,0 +1,18 @@
+enum TopicModels {
+    W2V_TOP_FREQ
+    PROJECTION
+    LDA
+}
+
+type NLP {
+    TopicModel(
+        field: String!
+        method: TopicModels!
+        max_words: Int
+        min_words: Int
+        params: JSON
+        ignoreTerms: [String]
+    ): [KeywordTopic]
+
+    Projection(field: String!, method: Projections, sample: Int): [[String]]
+}

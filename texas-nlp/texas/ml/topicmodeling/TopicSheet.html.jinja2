@@ -1,0 +1,18 @@
+<div id="APP">
+    <table>
+        <tr>
+                {% for topic_id in range(topics|length) %}
+                    <th>Topic {{topics[topic_id][0]}}</th>
+                    <th></th>
+                {% endfor %}
+            </tr>
+        {% for term_id in range(topics[0][1]|length) %}
+            <tr>
+                {% for topic_id in range(topics|length) %}
+                    <td style="opacity:{{topics[topic_id][1][term_id][2]+0.2}}">{{topics[topic_id][1][term_id][0]}}</td>
+                    <td><div style="height: 10px; width:{{1000*topics[topic_id][1][term_id][1]}}px; background-color: #d3dfea"></div></td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+<div>

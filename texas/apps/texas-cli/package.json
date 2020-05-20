@@ -1,0 +1,17 @@
+{
+    "name": "texas-cli",
+    "version": "0.2.0",
+    "description": "Terminal client for Texas",
+    "main": "./src/cli.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "prompt": "^1.0.0",
+        "texas-js": "^0.2.0",
+        "texas-utils": "^0.2.0",
+        "yargs": "^10.0.3"
+    },
+    "author": "",
+    "license": "ISC"
+}

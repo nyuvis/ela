@@ -1,0 +1,20 @@
+{
+    "name": "texas-gql",
+    "version": "0.2.0",
+    "description": "Texas GRaphQL Interface",
+    "main": "./src/index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "apollo-server": "2.0.7",
+        "apollo-server-express": "2.0.4",
+        "graphql": "0.13.2",
+        "graphql-tools": "3.1.1",
+        "lodash": "4.17.10",
+        "texas-js": "0.2.0",
+        "texas-utils": "0.2.0"
+    },
+    "author": "",
+    "license": "ISC"
+}

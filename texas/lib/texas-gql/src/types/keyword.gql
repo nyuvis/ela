@@ -1,0 +1,9 @@
+type Keyword {
+    Keyword: String
+    Weight: Float
+}
+
+input KeywordInput {
+    Keyword: String
+    Weight: Float
+}

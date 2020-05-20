@@ -1,0 +1,12 @@
+type Document {
+    ID: ID!
+    Raw: JSON!
+    Field(name: String, ID: ID, type: DataType): DynScalar
+    Highlight(ID: String, highlight: [String], numFragments: Int): [String]
+    Score: Float
+    FieldStats(fieldID: ID): FieldStats
+}
+
+input InputDocument {
+    Raw: JSON!
+}
