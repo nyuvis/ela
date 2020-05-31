@@ -40,7 +40,7 @@ class Document2Vector(object):
 
   def saving_model(self, path, collectionName, docFolderName):
     print('Saving Doc2Vec model')
-    self.model.save(path+'/'+docFolderName+'/'+collectionName+'/Doc2vec_Model')
+    self.model.save(path+'/'+docFolderName+'/'+collectionName+'/models/Doc2vec_Model')
 
 if __name__ == "__main__":
   # storing args from command line

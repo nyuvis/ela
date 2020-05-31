@@ -29,7 +29,7 @@ class AppNavbar extends Component {
           <Container>
             <NavbarBrand style= {{ color: "antiquewhite" }}>ELA</NavbarBrand>
             <NavbarBrand>
-              <Link style={{ color: "#E4E4E4", textDecoration: "none"}} to="/upload">File Upload</Link></NavbarBrand>
+              <Link style={{ color: "#E4E4E4", textDecoration: "none"}} to="/">File Upload</Link></NavbarBrand>
             <NavbarBrand>
               <Link style={{ color: "#E4E4E4", textDecoration: "none"}} to="/search">Search</Link>
               </NavbarBrand>

@@ -5,6 +5,8 @@ const { spawn } = require('child_process')
 const path = require('path')
 var fs = require('fs')
 const DOC_FOLDER_NAME = process.env.DOC_FOLDER_NAME || 'model_csv_files';
+const { createApolloFetch } = require('apollo-fetch');
+
 
 
 async function spawnPythonScripts(params, listOfDocs) {
@@ -80,10 +82,52 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
     });
   })
   }
+
+ async function addCollectionToTexasServer(indexName) {
+
+	try {
+    console.log("Calling texas ")
+    const fetch = createApolloFetch({
+      uri: 'http://localhost:4200/graphql',
+    });
+    fetch({
+      query: `mutation createDataset($config:JSON!, $name: String!){System
+        {createDataset(dataset: {Name: $name, Provider: "ElasticSearch",Config:$config}){ID}}
+        }`,
+      variables: { 
+        name: indexName,
+        config: {
+          "index": indexName,
+          "type": "doc",
+          "client": {
+            "hosts": [
+              {
+                "host": "elasticsearch",
+                "port": 9200,
+                "path": ""
+              }
+            ]
+          }
+        }
+       },
+    }).then(res => {
+      if(res.data.System.createDataset) {
+        console.log("Collection Added to Texas");
+      }
+      if(res.errors) {
+        console.log("Errors in Adding Collection: {}".format(res.errors[0].message));
+      }
+    })
+  } catch(ex) {
+    console.log(ex);
+  }
+ }
  
  async function callPythonScripts(listOfDocs, indexName, documentIdList, userId, sendStream, stopwordlist) {
 
-  let dir = path.join(__dirname, ".././"+DOC_FOLDER_NAME);
+  addCollectionToTexasServer(indexName)
+  
+  let dir = path.join(__dirname, ".././"+DOC_FOLDER_NAME); // Add a folder like nlp-data and inside this folder create index folder
   
   if (!fs.existsSync(dir)){
       fs.mkdirSync(dir);
@@ -91,12 +135,36 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
       if (!fs.existsSync(collectionPath)){
         fs.mkdirSync(collectionPath);
       }
+      let collectionModelPath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName+"/models");
+      if (!fs.existsSync(collectionModelPath)){
+        fs.mkdirSync(collectionModelPath);
+      }
+      let collectionProjectionPath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName+"/projections");
+      if (!fs.existsSync(collectionProjectionPath)){
+        fs.mkdirSync(collectionProjectionPath);
+      }
+      let collectionTopicsPath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName+"/topics");
+      if (!fs.existsSync(collectionTopicsPath)){
+        fs.mkdirSync(collectionTopicsPath);
+      }
   } else {
     let collectionPath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName);
     if (!fs.existsSync(collectionPath)){
       fs.mkdirSync(collectionPath);
     }
+    let collectionModelPath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName+"/models");
+      if (!fs.existsSync(collectionModelPath)){
+        fs.mkdirSync(collectionModelPath);
+      }
+    let collectionProjectionPath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName+"/projections");
+    if (!fs.existsSync(collectionProjectionPath)){
+      fs.mkdirSync(collectionProjectionPath);
+    }
+    let collectionTopicsPath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName+"/topics");
+    if (!fs.existsSync(collectionTopicsPath)){
+      fs.mkdirSync(collectionTopicsPath);
   }
+}
   sendStream(userId, "Building Topics");
   const ldaScript = await spawnPythonScripts([path.join(__dirname, "pythonScripts/lda_Script.py"), 'document_list', indexName, DOC_FOLDER_NAME, stopwordlist], listOfDocs);
   if (ldaScript === "SUCCESS") {
@@ -209,8 +277,12 @@ async function insertDataIntoES(csvData, index, type, column, batchCounter) {
   }
 
   // Insert remainder of the bulk Ops array
-  await esConnection.client.bulk({  body: bulkOps });
-  console.log(`Indexed Records ${(batchCounter*500)+1} - ${(batchCounter*500) + csvData.length}\n\n\n`);
+  try {
+    await esConnection.client.bulk({  body: bulkOps });
+    console.log(`Indexed Records ${(batchCounter*500)+1} - ${(batchCounter*500) + csvData.length}\n\n\n`);
+  } catch(err) {
+    console.error(err);
+  }
 }
 
 module.exports = {

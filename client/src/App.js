@@ -8,7 +8,6 @@ import {
 
 import AppNavbar from './components/AppNavbar';
 import FileUploadContainer from './containers/FileUploadContainer';
-import HomeContainer from "./containers/HomeContainer";
 import SearchContainer from "./containers/SearchContainer";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -75,13 +74,10 @@ class App extends Component {
             {this.state.toastMessage && <Toaster message={this.state.toastMessage} autoClose={false}/>}
             <Switch>
               <Route exact path="/">
-                <HomeContainer />
-              </Route>
-              <Route path="/upload">
-              <FileUploadContainer 
-                userId={this.state.userId}
-                setToastMessage= {this.setToastMessage}
-                />
+                <FileUploadContainer 
+                  userId={this.state.userId}
+                  setToastMessage= {this.setToastMessage}
+                  />
               </Route>
               <Route path="/search">
                 <SearchContainer 

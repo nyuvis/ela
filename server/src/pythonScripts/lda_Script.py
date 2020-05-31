@@ -64,7 +64,7 @@ class LDA_Doc(object):
     for t in range(self.model.num_topics):
       topics_list.append([x[0] for x in self.model.show_topic(t)])
 
-    with open(path+'/'+docFolderName+'/'+collectionName+'/lda_text.csv','w', newline='') as out:
+    with open(path+'/'+docFolderName+'/'+collectionName+'/topics/lda_text.csv','w', newline='') as out:
       csv_out=csv.writer(out)
       for row in topics_list:
           csv_out.writerow(row)

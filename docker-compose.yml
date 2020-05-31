@@ -11,9 +11,10 @@ services:
     restart: on-failure
     volumes:
       - /app/server/node_modules # Inside the container, don't try to override this folder, just leave as is
+      - $RUNTIME/nlp-data:/app/server/nlpData
     environment: # Set ENV vars
      - NODE_ENV=local
-     - DOC_FOLDER_NAME=documents_csv
+     - DOC_FOLDER_NAME=nlpData
      - ES_HOST=elasticsearch
      - PORT=3000
 
@@ -26,6 +27,10 @@ services:
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     ports: # Expose ElasticSearch ports
       - "9300:9300"
       - "9200:9200"

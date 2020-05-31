@@ -14,7 +14,7 @@ import os
 class Umap_to_csv(object):
   def __init__(self, doc2Vec_model_Name, input_list_of_documents, document_id_list, path, collectionName, docFolderName):
     print('Initializing the Umap_to_csv instance with list of list of vectors')
-    self.model = gensim.models.doc2vec.Doc2Vec.load(path+'/'+docFolderName+'/'+collectionName+'/Doc2vec_Model')
+    self.model = gensim.models.doc2vec.Doc2Vec.load(path+'/'+docFolderName+'/'+collectionName+'/models/Doc2vec_Model')
     self.input_list_of_documents = input_list_of_documents
     self.document_id_list = document_id_list
 
@@ -32,7 +32,7 @@ class Umap_to_csv(object):
 
   def saving_projection(self, path, collectionName, docFolderName):
     print('Saving projections to csv')
-    with open(path+'/'+docFolderName+'/'+collectionName+'/umap_title.csv','w', newline='') as out:
+    with open(path+'/'+docFolderName+'/'+collectionName+'/projections/umap_title.csv','w', newline='') as out:
       csv_out=csv.writer(out)
       if len(self.document_id_list) == len(self.projection):
         for doc_id, row in zip(self.document_id_list, self.projection):
