@@ -2,7 +2,7 @@ version: '3'
 
 services: 
   api:
-    container_name: node-react-api-merge
+    container_name: node-react-api
     build:  # it will look for Dockerfile in current directory to build the image
       context: .
       dockerfile: Dockerfile
@@ -17,9 +17,11 @@ services:
      - DOC_FOLDER_NAME=nlpData
      - ES_HOST=elasticsearch
      - PORT=3000
+    depends_on: 
+      - texas-api
 
   elasticsearch: # Elasticsearch Instance
-    container_name: es-search-api-merge
+    container_name: es-search-api
     image: docker.elastic.co/elasticsearch/elasticsearch:6.1.1
     volumes: # Persist ES data in seperate "esdata" volume
       - esdata:/usr/share/elasticsearch/data
@@ -36,7 +38,7 @@ services:
       - "9200:9200"
 
   texas-api:
-    container_name: texas-api-merge
+    container_name: texas-api
     image: texas-api-img
     environment:
       ES_DEFAULT_HOST: $ES_DEFAULT_HOST
@@ -83,7 +85,7 @@ services:
       TEXAS_DEFAULT_URL: $TEXAS_DEFAULT_URL
     stdin_open: true
     tty: true
-    container_name: texas-nlp-merge
+    container_name: texas-nlp
     volumes:
       - $NLP_DATA:/data
       - $NLP_DATA:/app/data

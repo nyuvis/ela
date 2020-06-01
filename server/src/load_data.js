@@ -86,10 +86,9 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
  async function addCollectionToTexasServer(indexName) {
 
 	try {
-    console.log("Calling texas ")
     const fetch = createApolloFetch({
-      uri: 'http://localhost:4200/graphql',
-    });
+      uri: `http://texas-api:4200/graphql`,
+    }); 
     fetch({
       query: `mutation createDataset($config:JSON!, $name: String!){System
         {createDataset(dataset: {Name: $name, Provider: "ElasticSearch",Config:$config}){ID}}
@@ -127,7 +126,7 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
 
   addCollectionToTexasServer(indexName)
   
-  let dir = path.join(__dirname, ".././"+DOC_FOLDER_NAME); // Add a folder like nlp-data and inside this folder create index folder
+  let dir = path.join(__dirname, ".././"+DOC_FOLDER_NAME);
   
   if (!fs.existsSync(dir)){
       fs.mkdirSync(dir);
@@ -279,7 +278,7 @@ async function insertDataIntoES(csvData, index, type, column, batchCounter) {
   // Insert remainder of the bulk Ops array
   try {
     await esConnection.client.bulk({  body: bulkOps });
-    console.log(`Indexed Records ${(batchCounter*500)+1} - ${(batchCounter*500) + csvData.length}\n\n\n`);
+    console.log(`Indexed Records ${(batchCounter*500)+1} - ${(batchCounter*500) + csvData.length}\n`);
   } catch(err) {
     console.error(err);
   }
