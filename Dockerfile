@@ -14,13 +14,20 @@ RUN conda install -c conda-forge umap-learn==0.3.10
 RUN conda install -c conda-forge smart_open==1.9.0
 RUN conda install pandas==0.23.4
 
-COPY . /app
+COPY ./client /app/client
 
 # # Client 
 WORKDIR /app/client
 RUN npm install --no-cache && npm run build
 
+# # Ela Other Client
+COPY ./topic-builder /app/topic-builder
+WORKDIR /app/topic-builder
+RUN npm install --no-cache && npm run build
+
+
 # server
+COPY ./server /app/server
 WORKDIR /app/server
 RUN npm install --no-cache
 

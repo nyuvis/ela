@@ -7,7 +7,6 @@ const path = require('path');
 
 const app = new express();
 
-app.use(express.static(path.join(__dirname,  '../../', 'client', 'build')));
 app.use(compression())
 
 // Listening to setting response headers
@@ -47,10 +46,12 @@ app.use((err, req, res, next) => {
     message: err.message
   });
 })
+app.use('/ela', express.static(path.join(__dirname,  '../../', 'topic-builder', 'build')));
+app.get('/ela/*', function(req, res) {
+  res.sendFile(path.join(__dirname, '../../', './topic-builder', 'build', 'index.html'));
+});
 
-
-
-
+app.use('/', express.static(path.join(__dirname,  '../../', 'client', 'build')));
 app.get('/*', function(req, res) {
     res.sendFile(path.join(__dirname, '../../', 'client', 'build', 'index.html'));
 });
