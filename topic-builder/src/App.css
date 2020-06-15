@@ -1,0 +1,10 @@
+.App {
+    height: 100%;
+}
+
+.row td {
+    padding: 4px;
+}
+.row th {
+    padding: 4px;
+}
