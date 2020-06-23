@@ -5,7 +5,7 @@ let index;
 let type;
 const port = 9200;
 const host = process.env.ES_HOST || 'localhost';
-const requestTimeout = 10000
+const requestTimeout = 60000
 const client = new elasticsearch.Client({ host: { host, port  }, requestTimeout });
 
 // Check the ES connection status

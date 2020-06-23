@@ -1,0 +1,154 @@
+.home {
+    text-align: center;
+    font-family: "Josefin Sans", sans-serif;
+    margin: 0px;
+    padding-top: 18px;
+}
+.home .paper-info {
+    color: black;
+    text-decoration: none;
+    display: block;
+    width: 700px;
+    margin: auto;
+    margin-top: 50px;
+}
+
+.home .paper-info > .title {
+    font-size: 25px;
+    font-weight: bold;
+}
+.home .links {
+    margin: 20px;
+}
+.home .links h2 {
+    display: inline-block;
+    margin: 10px;
+    padding: 0px;
+    font-size: 25px !important;
+}
+
+.home .button {
+    background-color: #6a30a3;
+    border: none;
+    color: white;
+    font-size: 16px;
+    padding: 10px 10px;
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    text-decoration: none;
+    font-style: normal;
+    font-weight: 600;
+}
+.home .button2 {
+    background-color: #6a30a3;
+    border: none;
+    color: white;
+    font-size: 16px;
+    padding: 10px 10px;
+    position: absolute;
+    top: 5px;
+    right: 150px;
+    text-decoration: none;
+    font-style: normal;
+    font-weight: 600;
+}
+.home #header {
+    border-bottom: solid 1px #000;
+    position: fixed;
+    left: 0px;
+    top: 0px;
+    right: 0px;
+    height: 25px;
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 10px;
+}
+.home ul {
+    text-align: center;
+    margin: auto;
+}
+.home li {
+    display: inline-block;
+    width: 350px;
+}
+.home li img {
+    max-width: 350px;
+}
+.home li .caption {
+    display: inline-block;
+    padding: 10px;
+    margin-top: 10px;
+}
+.home .border {
+    border: solid 1px #ccc;
+}
+
+.home .line {
+    display: inline-block;
+    vertical-align: top;
+}
+.home .box {
+    padding: 25px;
+}
+.home .textList {
+    display: inline-block;
+    width: 400px;
+    height: 400px;
+    margin-top: -27px;
+    padding: 0px;
+}
+.home .textList li {
+    padding: 10px;
+    border-top: 1px;
+    border-bottom: solid 1px #ccc;
+    position: relative;
+    font-size: 14px;
+}
+
+.home .textList li em {
+    color: #6a30a3;
+    font-weight: 600;
+    font-style: normal;
+    text-decoration: underline;
+}
+
+.home #header h1 {
+    position: absolute;
+    color: #6a30a3;
+    left: 20px;
+    padding: 0px;
+    margin: 0px;
+    display: inline-block;
+    font-weight: 300;
+}
+.home .page {
+    padding: 20px;
+    text-align: center;
+    padding-top: 90px;
+    padding-bottom: 90px;
+}
+.home .page .text {
+    width: 400px;
+    margin: auto;
+    display: block;
+}
+.home .shadow {
+    box-shadow: 0px 0px 20px #ccc;
+}
+.home .credits {
+    font-size: 20px;
+}
+.home .left {
+    float: left;
+}
+.home .right {
+    float: right;
+}
+.home .page h1 {
+    font-weight: 300;
+    font-size: 45px;
+}
+.home .page h2 {
+    font-weight: 300;
+    font-size: 45px;
+}
