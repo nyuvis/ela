@@ -53,7 +53,25 @@ async function resetIndex (index, type, stopwordlist) {
 async function putDataMapping (index, type) {
   const schema = {
     location: { type: 'integer' },
-    text: { type: 'text' , analyzer: "std_english" }
+    text: { type: 'text' , analyzer: "std_english", "fielddata": true },
+    __nlp__: {
+      properties: {
+        text: {
+          properties: {
+            projection_point: {
+              properties: {
+                x: {
+                  type: "float"
+                },
+                y: {
+                  type: "float"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
   return client.indices.putMapping({ index, type, body: { properties: schema }})
 }

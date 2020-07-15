@@ -32,9 +32,10 @@ class Umap_to_csv(object):
 
   def saving_projection(self, path, collectionName, docFolderName):
     print('Saving projections to csv')
-    with open(path+'/'+docFolderName+'/'+collectionName+'/projections/umap_title.csv','w', newline='') as out:
+    with open(path+'/'+docFolderName+'/'+collectionName+'/projections/umap_proj.csv','w', newline='') as out:
       csv_out=csv.writer(out)
       if len(self.document_id_list) == len(self.projection):
+        csv_out.writerow(("doc_id","x", "y"))
         for doc_id, row in zip(self.document_id_list, self.projection):
           csv_out.writerow((doc_id,row[0], row[1]))
       else:

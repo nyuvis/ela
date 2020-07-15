@@ -275,7 +275,7 @@ class Elasticsearch {
                     type: this.type
                 })
                 .then(async mapping => {
-                    mapping = mapping[this.index].mappings[this.type].properties;
+                    mapping = mapping[this.index].mappings[this.type].properties || {};
                     let types = Object.keys(mapping)
                         .filter(field => field != "__nlp__")
                         .map(field => ({

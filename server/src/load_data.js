@@ -5,8 +5,8 @@ const { spawn } = require('child_process')
 const path = require('path')
 var fs = require('fs')
 const DOC_FOLDER_NAME = process.env.DOC_FOLDER_NAME || 'model_csv_files';
+const TOPICS_FOLDER_NAME = process.env.TOPICS_FOLDER || 'projections';
 const { createApolloFetch } = require('apollo-fetch');
-
 
 
 async function spawnPythonScripts(params, listOfDocs) {
@@ -85,6 +85,96 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
 
  async function addCollectionToTexasServer(indexName) {
 
+  // check if the store is created or not
+  let storeCreated = false;
+  let indexIDInTexas;
+  console.log("Checking Store")
+  try {
+    const data = await esConnection.client.cat.indices();
+    if( data.length) {
+      const indexes = data.trim().split('\n');
+      const indexNameList = [];
+      for (i=0; i<indexes.length; i++) {
+        indexNameList.push(indexes[i].split(/(\s+)/).filter((e) => e.trim().length > 0 )[2]);
+      }
+      const regex = /^(?!^\.)/;
+      const list = indexNameList.filter((index) => index.match(regex));
+      if(list.indexOf('texas.store.exploratory-labeling.label-sets') != -1){
+        storeCreated = true;
+        console.log("store already present")
+      }
+    }
+  } catch (error) {
+    let err = new Error(`Error in Checking Indexes`);
+    console.log(err);
+  }
+
+  if(!storeCreated) {
+    console.log("Creating store in ES")
+    try {
+      const fetch1 = createApolloFetch({
+        uri: `http://texas-api:4200/graphql`,
+      }); 
+      fetch({
+        query: `mutation {
+          Store {
+            createStore(store: {
+              ID: "exploratory-labeling",
+              Name: "Exploratory Labeling"
+            }) {
+              ID
+              Name
+            }
+          }
+        }`
+      }).then(res => {
+        if(res.data) {
+          console.log("Store Added to ES");
+          const fetch2 = createApolloFetch({
+            uri: `http://texas-api:4200/graphql`,
+          }); 
+          fetch({
+            query: `mutation {
+              Store(ID: "exploratory-labeling") {
+                addCollection(collection: {
+                  ID: "label-sets",
+                  Name: "LabelSets",
+                  Schema: {
+                    Fields: [{
+                      ID: "labelSetID",
+                      Description: "labelSetID",
+                      Name: "labelSetID",
+                      Type: CATEGORICAL
+                    }]
+                  }
+                }) {
+                  ID
+                  Name
+                }
+              }
+            }`
+          }).then(res => {
+            if(res.data) {
+              // check with Cristian if we can add properties while creating the LabsetID
+              console.log("LabelSet Added to ES");
+            }
+            if(res.errors) {
+              console.log("Errors in Adding LabelSetID: ", res.errors[0].message);
+            }
+          })
+        }
+        if(res.errors) {
+          console.log("Errors in Adding Store: ",res.errors[0].message);
+        }
+      })
+      
+    } catch(ex) {
+      console.log(ex);
+    }
+  }
+
+  return new Promise(function(resolve, reject){
+
 	try {
     const fetch = createApolloFetch({
       uri: `http://texas-api:4200/graphql`,
@@ -111,22 +201,44 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
        },
     }).then(res => {
       if(res.data.System.createDataset) {
+        indexIDInTexas = res.data.System.createDataset.ID;
+        resolve(indexIDInTexas);
         console.log("Collection Added to Texas");
       }
       if(res.errors) {
-        console.log("Errors in Adding Collection: {}".format(res.errors[0].message));
+        reject("ERROR");
+        console.log("Errors in Adding Collection: ",res.errors[0].message);
       }
     })
   } catch(ex) {
     console.log(ex);
   }
+  })
  }
  
  async function callPythonScripts(listOfDocs, indexName, documentIdList, userId, sendStream, stopwordlist) {
 
-  addCollectionToTexasServer(indexName)
+  let res = await addCollectionToTexasServer(indexName);
+  let ID;
+  if (res != 'ERROR'){
+    ID = res;
+  }
   
   let dir = path.join(__dirname, ".././"+DOC_FOLDER_NAME);
+  let topics_dir = path.join(__dirname, ".././"+TOPICS_FOLDER_NAME);
+
+  if (!fs.existsSync(topics_dir)){
+    fs.mkdirSync(topics_dir);
+    let collectionPath_topics = path.join(__dirname, ".././"+TOPICS_FOLDER_NAME+"/"+ID);
+    if (!fs.existsSync(collectionPath_topics)){
+      fs.mkdirSync(collectionPath_topics);
+    }
+  } else {
+    let collectionPath_topics = path.join(__dirname, ".././"+TOPICS_FOLDER_NAME+"/"+ID);
+    if (!fs.existsSync(collectionPath_topics)){
+      fs.mkdirSync(collectionPath_topics);
+    }
+  }
   
   if (!fs.existsSync(dir)){
       fs.mkdirSync(dir);
@@ -142,10 +254,10 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
       if (!fs.existsSync(collectionProjectionPath)){
         fs.mkdirSync(collectionProjectionPath);
       }
-      let collectionTopicsPath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName+"/topics");
-      if (!fs.existsSync(collectionTopicsPath)){
-        fs.mkdirSync(collectionTopicsPath);
-      }
+      // let collectionTopicsPath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName+"/topics");
+      // if (!fs.existsSync(collectionTopicsPath)){
+      //   fs.mkdirSync(collectionTopicsPath);
+      // }
   } else {
     let collectionPath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName);
     if (!fs.existsSync(collectionPath)){
@@ -159,13 +271,13 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
     if (!fs.existsSync(collectionProjectionPath)){
       fs.mkdirSync(collectionProjectionPath);
     }
-    let collectionTopicsPath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName+"/topics");
-    if (!fs.existsSync(collectionTopicsPath)){
-      fs.mkdirSync(collectionTopicsPath);
-  }
+  //   let collectionTopicsPath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName+"/topics");
+  //   if (!fs.existsSync(collectionTopicsPath)){
+  //     fs.mkdirSync(collectionTopicsPath);
+  // }
 }
   sendStream(userId, "Building Topics");
-  const ldaScript = await spawnPythonScripts([path.join(__dirname, "pythonScripts/lda_Script.py"), 'document_list', indexName, DOC_FOLDER_NAME, stopwordlist], listOfDocs);
+  const ldaScript = await spawnPythonScripts([path.join(__dirname, "pythonScripts/lda_Script.py"), 'document_list', ID, TOPICS_FOLDER_NAME, stopwordlist], listOfDocs);
   if (ldaScript === "SUCCESS") {
     sendStream(userId, "Topics Build Successfully");
   } else {
@@ -177,12 +289,68 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
     sendStream(userId, "Model Build Successfully, Building Projections");
     const umapScript = await spawnUmapScripts([path.join(__dirname, "pythonScripts/umap_Script.py"), 'Doc2vec_Model', 'document_list', indexName, DOC_FOLDER_NAME, stopwordlist], listOfDocs, documentIdList)
     if (umapScript === "SUCCESS") {
+      // here save these projection in elastic search
+      let pathProj = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName+"/projections");
+      insertProjectionToES(indexName, pathProj)
       sendStream(userId, "Projections Build Successfully");
     } else {
       sendStream(userId, "Projections Build Failed");
     }
   } else {
     sendStream(userId, "Model Build Failed");
+  }
+}
+
+async function insertProjectionToES(index, path) {
+  let results = [];
+  let headersToRem = '';
+  fs.createReadStream(path + '/umap_proj.csv')
+  .pipe(csv({ separator: '\n'}))
+  .on('headers', (headers) => {
+    headersToRem = headers;
+  })
+  .on('data', (data) => {
+    results.push(data[headersToRem])
+    if(results.length >= 500) {
+      // insert 500 rows to elastic Search
+      updateDataIntoES(results, index, 'doc');
+      results = [];
+    }
+  })
+  .on('end', () => {
+    updateDataIntoES(results, index, 'doc');
+  });
+}
+
+async function updateDataIntoES(csvData, index, type) {
+  let bulkOps = []; // Array to store bulk operations
+  // Add an index operations for each sections in the book
+  for (let i=0; i< csvData.length; i++) {
+    // Describe actions
+    let csvDataList = csvData[i].split(',');
+  
+    bulkOps.push({ update: { _index: index, _type: type, _id: csvDataList[0] }})
+    // Update document
+    bulkOps.push({
+      doc: {
+      __nlp__: {
+        text: {
+          projection_point: {
+            x: parseFloat(csvDataList[1]),
+            y: parseFloat(csvDataList[2])
+          }
+        }
+      }
+    }
+    })
+  }
+
+  // Insert remainder of the bulk Ops array
+  try {
+    await esConnection.client.bulk({  body: bulkOps });
+    console.log(`Indexed Records ${csvData[0]} - ${csvData[csvData.length-1]}\n`);
+  } catch(err) {
+    console.error(err);
   }
 }
 
@@ -267,7 +435,7 @@ async function insertDataIntoES(csvData, index, type, column, batchCounter) {
   // Add an index operations for each sections in the book
   for (let i=0; i< csvData.length; i++) {
     // Describe actions
-    bulkOps.push({ index: { _index: index, _type: type }})
+    bulkOps.push({ index: { _index: index, _type: type, _id: ((batchCounter*500) + i) }})
     // Add document
     bulkOps.push({
       location: (batchCounter*500) + i,
