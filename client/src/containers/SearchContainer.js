@@ -18,6 +18,7 @@ class SearchContainer extends Component {
     searchTerm: '',
     baseState: {},
     showAlert: false,
+    link: ''
   }
 
   async componentWillMount() {
@@ -66,11 +67,31 @@ class SearchContainer extends Component {
     }
   }
 
-  selectIndex = (e) => {
+  selectIndex = async (e) => {
+    const selectedIndex = e.target.value;
+    const response = await ApiService.getIDCollection(selectedIndex);
+    const collectionList = response.data.data.Datasets;
+    let ID, temp_link;
+    
+    if(collectionList && collectionList.length >= 1){
+      console.log("inside condition");
+      for(let index=0; index< collectionList.length; index++){
+        if(collectionList[index].Name === selectedIndex){
+          ID =  collectionList[index].ID;
+        }
+      }
+    }
+    if (ID){
+      temp_link = `http://localhost:3000/ela/study/${ID}/study1`;
+    } else {
+      temp_link = '';
+    }
+    console.log(temp_link);
     this.setState({
-      selectIndex: e.target.value,
+      selectIndex: selectedIndex,
       searchTerm: '',
       showAlert: false,
+      link: temp_link
     })
   }
 
@@ -111,6 +132,7 @@ class SearchContainer extends Component {
   }
   
   render() {
+    console.log(this.state);
     return (
       <div>
         <Container>
@@ -135,6 +157,10 @@ class SearchContainer extends Component {
                 Select the Collection to search.....!
               </Alert>)
               }
+            {this.state.link.length ? (<p>
+            <a href={this.state.link} target="_blank">Click here to check in ELA !</a>
+              </p>): (<p> No Link is available for this Collection at this time.</p>)}
+
             {this.state.selectIndex && (
             <div className="result-container-div">
             <Label for="exampleEmail">Results: </Label>

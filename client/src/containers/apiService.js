@@ -99,6 +99,25 @@ export class ApiService {
       console.log(err);
     }
   }
+
+  getIDCollection = (index) => {
+    console.log("calling to get collection ID");
+    console.log(index);
+    try {
+      return axios
+        .post(`${process.env.REACT_APP_TO_DO_ITEMS_API}/getID`, {
+          index
+        },{
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(res => res.data)
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
 }
 
 export default new ApiService();

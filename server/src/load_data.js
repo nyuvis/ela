@@ -115,7 +115,7 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
       const fetch1 = createApolloFetch({
         uri: `http://texas-api:4200/graphql`,
       }); 
-      fetch({
+      fetch1({
         query: `mutation {
           Store {
             createStore(store: {
@@ -133,7 +133,7 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
           const fetch2 = createApolloFetch({
             uri: `http://texas-api:4200/graphql`,
           }); 
-          fetch({
+          fetch2({
             query: `mutation {
               Store(ID: "exploratory-labeling") {
                 addCollection(collection: {
@@ -157,6 +157,20 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
             if(res.data) {
               // check with Cristian if we can add properties while creating the LabsetID
               console.log("LabelSet Added to ES");
+              console.log("Adding Properties to LabelSetID")
+              try {
+                 esConnection.client.indices.putMapping({ index: "texas.store.exploratory-labeling.label-sets", type: "document", body: { properties: {
+                      "labelSetID": {
+                        "type": "keyword"
+                      }
+                } }}).then(res => {
+                  console.log("response is ",res);
+                  console.log("Mapping properties Added")
+                })
+              } catch (error) {
+                let err = new Error(`Error in Adding Properties`);
+                console.log(err);
+              }
             }
             if(res.errors) {
               console.log("Errors in Adding LabelSetID: ", res.errors[0].message);

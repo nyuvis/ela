@@ -5,6 +5,7 @@ const csv = require('csv-parser');
 const loadData = require('./load_data');
 const { client } = require('./connection');
 const streamifier = require('streamifier');
+const { createApolloFetch } = require('apollo-fetch');
 
 // Setting Memory storage
 const upload = multer({ 
@@ -254,15 +255,40 @@ router.post('/search', async (req, res) => {
       })
 });
 
-
 /**
- * GET /testElasticSearch
- * Search for a term in the Elastic search
+ * POST /getID
+ * Get the ID of Collection in texas
  */
-router.get('/deleteIndex', async (req, res) => {
-  // console.log(client);
-
-  // const data = await client.delete({ index});
+router.post('/getID', async (req, res) => {
+  try {
+    const { index } = req.body;
+    if(index) {
+      const fetch = createApolloFetch({
+        uri: `http://texas-api:4200/graphql`,
+      }); 
+      const data = await fetch({
+        query: `{
+          Datasets {
+            ID,
+            Name
+          }
+        }`
+      })
+      if(data.data) {
+        console.log("Got Response");
+        console.log(data.data);
+        res.json({
+          status: "success",
+          data
+        });
+      }
+      if(data.errors) {
+        console.log("Errors in Adding Collection: ",data.errors[0].message);
+      }
+    }
+  } catch(ex) {
+    console.log(ex);
+  }
 });
 
 module.exports = router;
