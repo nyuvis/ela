@@ -27,11 +27,10 @@ class AppNavbar extends Component {
       <div>
         <Navbar color="dark" dark expand="sm" className="mb-5">
           <Container>
-            <NavbarBrand style= {{ color: "antiquewhite" }}>ELA</NavbarBrand>
             <NavbarBrand>
               <Link style={{ color: "#E4E4E4", textDecoration: "none"}} to="/">File Upload</Link></NavbarBrand>
             <NavbarBrand>
-              <Link style={{ color: "#E4E4E4", textDecoration: "none"}} to="/search">Search</Link>
+              <Link style={{ color: "#E4E4E4", textDecoration: "none"}} to="/search">Collections</Link>
               </NavbarBrand>
             <NavbarToggler onClick={this.toggle} />
             <Collapse isOpen={this.state.isOpen} navbar>

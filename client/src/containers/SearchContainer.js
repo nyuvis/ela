@@ -27,8 +27,10 @@ class SearchContainer extends Component {
     });
     // get Available indexes
     const res = await ApiService.getAvailableIndexes();
+    let avoidCollections = ["texas.store.exploratory-labeling.label-sets", "texas.store.exploratory-labeling", "texas.store"];
+    let collectionList = res.data.filter(collection => avoidCollections.indexOf(collection) == -1)
     this.setState({
-      availableIndexes: res.data,
+      availableIndexes: collectionList,
       loading: true
     })
   }
@@ -68,25 +70,26 @@ class SearchContainer extends Component {
   }
 
   selectIndex = async (e) => {
+    let ID, temp_link = '';
     const selectedIndex = e.target.value;
-    const response = await ApiService.getIDCollection(selectedIndex);
-    const collectionList = response.data.data.Datasets;
-    let ID, temp_link;
-    
-    if(collectionList && collectionList.length >= 1){
-      console.log("inside condition");
-      for(let index=0; index< collectionList.length; index++){
-        if(collectionList[index].Name === selectedIndex){
-          ID =  collectionList[index].ID;
+    if(selectedIndex){
+      const response = await ApiService.getIDCollection(selectedIndex);
+      const collectionList = response.data.data.Datasets;
+      
+      
+      if(collectionList && collectionList.length >= 1){
+        for(let index=0; index< collectionList.length; index++){
+          if(collectionList[index].Name === selectedIndex){
+            ID =  collectionList[index].ID;
+          }
         }
       }
+      if (ID){
+        temp_link = `http://localhost:3000/ela/study/${ID}/study1`;
+      } else {
+        temp_link = '';
+      }
     }
-    if (ID){
-      temp_link = `http://localhost:3000/ela/study/${ID}/study1`;
-    } else {
-      temp_link = '';
-    }
-    console.log(temp_link);
     this.setState({
       selectIndex: selectedIndex,
       searchTerm: '',
@@ -130,9 +133,13 @@ class SearchContainer extends Component {
       searchOffset,
     });
   }
+
+  redirectToELA = (e) => {
+    const url = this.state.link;
+    window.open(url, '_blank');
+  }
   
   render() {
-    console.log(this.state);
     return (
       <div>
         <Container>
@@ -157,9 +164,23 @@ class SearchContainer extends Component {
                 Select the Collection to search.....!
               </Alert>)
               }
-            {this.state.link.length ? (<p>
-            <a href={this.state.link} target="_blank">Click here to check in ELA !</a>
-              </p>): (<p> No Link is available for this Collection at this time.</p>)}
+            {this.state.selectIndex ? ( this.state.link.length ? (<p>
+              <Button
+                style= {{ marginTop: "1%"}} 
+                color="success" 
+                size="lg" 
+                block
+                disabled={!this.state.link.length}
+                onClick={this.redirectToELA}
+                >Check in ELA</Button>
+            
+              </p>): (<p> 
+                <Button 
+                  color="secondary" 
+                  size="lg" 
+                  block
+                  color="info">No Active Link for Collection at this time.</Button></p>))
+                : (<p></p>)}
 
             {this.state.selectIndex && (
             <div className="result-container-div">
