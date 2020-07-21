@@ -32,7 +32,7 @@ export default class Home extends PureComponent {
                     <div className="page" style={{ textAlign: "center" }}>
                         <h1>ELA</h1>
                         <div className="text" style={{ fontSize: "18px" }}>
-                            <b>The Exploratory Leableing Assistant:</b>
+                            <b>The Exploratory Labeling Assistant:</b>
                             <br />
                             Mixed-Initiative Label Curation with Large Document
                             Collections
@@ -177,7 +177,7 @@ export default class Home extends PureComponent {
                             className="paper-info"
                             href="http://enrico.bertini.io/s/exp-labeling-uist2018.pdf">
                             <div className="title">
-                                The Exploratory Leableing Assistant:
+                                The Exploratory Labeling Assistant:
                                 Mixed-Initiative Label Curation with Large
                                 Document Collections
                             </div>

@@ -4,6 +4,7 @@ const onHeaders = require('on-headers');
 const bodyParser = require('body-parser');
 const compression = require('compression')
 const path = require('path');
+const loadData = require('./load_data');
 
 const app = new express();
 
@@ -62,4 +63,5 @@ app
   .listen(port, err => {
     if (err) console.error(err)
     console.log(`App Listening on Port ${port}`)
+    loadData.callWord2vecScripts();
   })

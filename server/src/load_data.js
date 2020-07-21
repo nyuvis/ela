@@ -83,6 +83,40 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
   })
   }
 
+  async function spawnWord2vecPythonScripts(params) {
+
+    return new Promise(function(resolve, reject){
+      
+      let stdout  = [];
+      let stderr = [];
+    
+      // spawn new child process to call the python script
+      const python = spawn('python', params);
+      
+      // collect data from script
+      python.stdout.on('data', function (data) {
+        console.log('Pipe data from python script ...');
+        stdout.push(data);
+      });
+      python.stderr.on('data', function (data) {
+        console.log('Pipe Error data from python script ...');
+        stderr.push(data);
+      });
+      // in close event we are sure that stream from child process is closed
+      python.on('close', (code) => {
+      console.log(`child process close all stdio with code ${code}`);
+      if (code === 0) {
+        console.log(stdout.join(""));
+        resolve("SUCCESS");
+      } else {
+        console.log(stdout.join(""));
+        console.log(stderr.join(""));
+        reject("ERROR");
+      }
+      });
+    })
+  }
+
  async function addCollectionToTexasServer(indexName) {
 
   // check if the store is created or not
@@ -229,6 +263,38 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
   }
   })
  }
+
+ async function callWord2vecScripts() {
+
+  let dir = path.join(__dirname, ".././"+DOC_FOLDER_NAME);
+
+  // Checking for existence of word2vec Model
+  if (!fs.existsSync(dir)){
+    fs.mkdirSync(dir);
+    let modelPath_ = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/__texas_models__");
+    let tempfilePath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/tempfile");
+    if (!fs.existsSync(modelPath_)){
+      fs.mkdirSync(modelPath_);
+      fs.mkdirSync(tempfilePath);
+      // Call here to create word2vecmodel
+      spawnWord2vecPythonScripts([path.join(__dirname, "pythonScripts/word2vec_Script.py"), "__texas_models__", DOC_FOLDER_NAME ]);
+      console.log("Building and loading word2vec model ");
+    } else {
+      console.log("word2vec model is already loaded");
+    }
+  } else {
+    let modelPath_ = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/__texas_models__");
+    let tempfilePath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/tempfile");
+    if (!fs.existsSync(modelPath_)){
+      fs.mkdirSync(modelPath_);
+      fs.mkdirSync(tempfilePath);
+      spawnWord2vecPythonScripts([path.join(__dirname, "pythonScripts/word2vec_Script.py"), "__texas_models__", DOC_FOLDER_NAME ]);
+      console.log("Building and loading word2vec model ");
+    } else {
+      console.log("word2vec model is already loaded");
+    }
+  }
+ }
  
  async function callPythonScripts(listOfDocs, indexName, documentIdList, userId, sendStream, stopwordlist) {
 
@@ -237,7 +303,6 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
   if (res != 'ERROR'){
     ID = res;
   }
-  
   let dir = path.join(__dirname, ".././"+DOC_FOLDER_NAME);
   let topics_dir = path.join(__dirname, ".././"+TOPICS_FOLDER_NAME);
 
@@ -268,10 +333,6 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
       if (!fs.existsSync(collectionProjectionPath)){
         fs.mkdirSync(collectionProjectionPath);
       }
-      // let collectionTopicsPath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName+"/topics");
-      // if (!fs.existsSync(collectionTopicsPath)){
-      //   fs.mkdirSync(collectionTopicsPath);
-      // }
   } else {
     let collectionPath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName);
     if (!fs.existsSync(collectionPath)){
@@ -285,10 +346,6 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
     if (!fs.existsSync(collectionProjectionPath)){
       fs.mkdirSync(collectionProjectionPath);
     }
-  //   let collectionTopicsPath = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName+"/topics");
-  //   if (!fs.existsSync(collectionTopicsPath)){
-  //     fs.mkdirSync(collectionTopicsPath);
-  // }
 }
   sendStream(userId, "Building Topics");
   const ldaScript = await spawnPythonScripts([path.join(__dirname, "pythonScripts/lda_Script.py"), 'document_list', ID, TOPICS_FOLDER_NAME, stopwordlist], listOfDocs);
@@ -303,7 +360,6 @@ async function spawnUmapScripts(params, listOfDocs, documentIdList) {
     sendStream(userId, "Model Build Successfully, Building Projections");
     const umapScript = await spawnUmapScripts([path.join(__dirname, "pythonScripts/umap_Script.py"), 'Doc2vec_Model', 'document_list', indexName, DOC_FOLDER_NAME, stopwordlist], listOfDocs, documentIdList)
     if (umapScript === "SUCCESS") {
-      // here save these projection in elastic search
       let pathProj = path.join(__dirname, ".././"+DOC_FOLDER_NAME+"/"+indexName+"/projections");
       insertProjectionToES(indexName, pathProj)
       sendStream(userId, "Projections Build Successfully");
@@ -467,5 +523,6 @@ async function insertDataIntoES(csvData, index, type, column, batchCounter) {
 }
 
 module.exports = {
-  readAndInsertData
+  readAndInsertData, 
+  callWord2vecScripts
 }
