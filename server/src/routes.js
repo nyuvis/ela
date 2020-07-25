@@ -204,7 +204,7 @@ router.post('/buildIndex/:userId',upload.single('file'), (req, res, next) => {
 // @route GET /getIndexes
 // @desc  get the available index in ElasticSearch
 // @access Public
-router.get('/getIndexes', async (req, res) => {
+router.get('/getIndexes', async (req, res, next) => {
   try {
     const data = await client.cat.indices();
     if( data.length) {
@@ -275,8 +275,6 @@ router.post('/getID', async (req, res) => {
         }`
       })
       if(data.data) {
-        console.log("Got Response");
-        console.log(data.data);
         res.json({
           status: "success",
           data
