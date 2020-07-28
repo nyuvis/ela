@@ -23,7 +23,7 @@ services:
     # build:  # it will look for Dockerfile in current directory to build the image
     #   context: .
     #   dockerfile: Dockerfile
-    image: nyuvis/ela-helper-web-app:1.0.0
+    image: nyuvis/ela-helper-web-app:1.0.1
     ports:
       - "3000:3000" # Expose App port
     restart: on-failure
