@@ -56,7 +56,7 @@ services:
     - ./texas:/app
     - $RUNTIME/data:/data
     - $RUNTIME/projections:/nlp/projections
-
+    
     - /app/node_modules
     - /app/apps/texas-server/node_modules
     - /app/apps/texas-cli/node_modules
@@ -66,7 +66,7 @@ services:
     stdin_open: true
     tty: true
     command: npm start
-
+  
   texas-nlp:
     image: nyuvis/texas-nlp-app:1.0.0
     environment:

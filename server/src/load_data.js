@@ -536,20 +536,18 @@ async function readAndInsertData (index, file, column, res, userId, sendStream, 
 }
 
 async function insertDataIntoES(csvData, index, type, column, batchCounter) {
-  let bulkOps = []; // Array to store bulk operations
   
+  let bulkOps = [];
+  // Array to store bulk operations
   // Add an index operations for each sections in the book
   for (let i=0; i< csvData.length; i++) {
-    // Describe actions
-    bulkOps.push({ index: { _index: index, _type: type, _id: ((batchCounter*500) + i) }})
+    bulkOps.push({ index: { _index: index, _type: type, _id: ((batchCounter*500) + i+1) }})
     // Add document
     bulkOps.push({
-      location: (batchCounter*500) + i,
+      location: (batchCounter*500) + i+1,
       text: csvData[i][column]
     })
   }
-
-  // Insert remainder of the bulk Ops array
   try {
     await esConnection.client.bulk({  body: bulkOps });
     console.log(`Indexed Records ${(batchCounter*500)+1} - ${(batchCounter*500) + csvData.length}\n`);
@@ -559,6 +557,6 @@ async function insertDataIntoES(csvData, index, type, column, batchCounter) {
 }
 
 module.exports = {
-  readAndInsertData, 
+  readAndInsertData,
   callWord2vecScripts
 }
