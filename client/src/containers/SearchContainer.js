@@ -172,7 +172,7 @@ class SearchContainer extends Component {
                 block
                 disabled={!this.state.link.length}
                 onClick={this.redirectToELA}
-                >Check in ELA</Button>
+                >Open Dataset in ELA</Button>
             
               </p>): (<p> 
                 <Button 

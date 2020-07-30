@@ -58,11 +58,6 @@ class App extends Component {
     this.setState({
       toastMessage,
     })
-    // setTimeout(() => {
-    //   this.setState({
-    //     toastMessage: '',
-    //   })
-    // }, 10000);
   }
 
   render() {

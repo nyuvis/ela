@@ -464,24 +464,60 @@ async function readAndInsertData (index, file, column, res, userId, sendStream, 
     })
     .on('data', (row) => {
       if(row[headersToRem]){
-        const contentList = row[headersToRem].split(regex);
-        const record = {};
-        for(i=0;i<headerList.length;i++) {
-          if(headerList[i] === column) {
-            record[headerList[i]]= contentList[i];
-            // creating list of list of rows content
-            pythonScriptInput.push(contentList[i].toLowerCase());
-            documentIdList.push(documentId);
-            documentId += 1;
+        let contentList = row[headersToRem].split(regex);
+        // handle format Errors in row
+        if(contentList.length != headerList.length){
+          console.log("Format Errors in Data rows 1st Check");
+          // handle errors due to comma inside double quotes
+          let rowContent = row[headersToRem];
+          let rowContentWithoutComma = rowContent.replace(/(?<=\,").+?(?=\",\S)/g, function(v) { 
+            return v.replace(/,/g, '');
+          });
+          let rowContentWithoutQuotes = rowContentWithoutComma.replace(/\"/g, '');
+          contentList = rowContentWithoutQuotes.split(regex);
+        }
+        // handle format Errors
+        if(contentList.length != headerList.length){
+          // still the content list is bigger means unhandled by regex defined above or missing newline carriage return on lines
+          // means there are multiple record in one line
+          console.log("Format Errors in Data rows 2nd Check");
+          let rowContent = row[headersToRem];
+          if (rowContent.indexOf('\r\n')) {
+            let rowsContent = rowContent.split('\r\n');
+            for(let i=0; i < rowsContent.length;i++){
+              currentRowContent = rowsContent[i].split(regex);
+              const record = {};
+              record[headerList[columnNumber]]= currentRowContent[columnNumber];
+              // creating list of list of rows content
+              pythonScriptInput.push(currentRowContent[columnNumber].toLowerCase());
+              documentIdList.push(documentId);
+              documentId += 1;
+              csvData.push(record);
+              if(csvData.length >= 500) {
+                // insert 500 rows to elastic Search
+                insertDataIntoES(csvData, index, 'doc',column, batchCounter);
+                batchCounter += 1;
+                csvData = [];
+              }
+            }
+          }
+        } else {
+          const record = {};
+          record[headerList[columnNumber]]= contentList[columnNumber];
+          // creating list of list of rows content
+          pythonScriptInput.push(contentList[columnNumber].toLowerCase());
+          documentIdList.push(documentId);
+          documentId += 1;
+          csvData.push(record);
+          if(csvData.length >= 500) {
+            // insert 500 rows to elastic Search
+            insertDataIntoES(csvData, index, 'doc',column, batchCounter);
+            batchCounter += 1;
+            csvData = [];
           }
         }
-        csvData.push(record);
-      }
-      if(csvData.length >= 500) {
-        // insert 500 rows to elastic Search
-        insertDataIntoES(csvData, index, 'doc',column, batchCounter);
-        batchCounter += 1;
-        csvData = [];
+      } else {
+        console.log("Missing Headers in the row");
       }
     })
     .on('end', () =>{

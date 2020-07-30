@@ -7,6 +7,7 @@ import IndexFileSelectionContainer from './IndexFileSelectionContainer';
 import SpinnerComponent from '../components/Spinner';
 import 'eventsource-polyfill';
 import PreviewModal from './PreviewModal';
+import {  toast } from 'react-toastify';
 
 class FileUploadContainer extends Component {
 
@@ -30,12 +31,15 @@ class FileUploadContainer extends Component {
 
   handleFileSelect = (event) => {
     // event.preventDefault();
+    this.dismissAll();
     const file = event.target.files[0];
     this.setState({
       file,
       loaded: true
     })
   }
+
+  dismissAll = () =>  toast.dismiss();
 
   uploadFile = async () => {
     try {

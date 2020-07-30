@@ -6,7 +6,7 @@ const Example = ({ handleFileSelect, uploadFileToSelectColumn, loaded })  => {
     <Container>
       <Form>
         <FormGroup>
-          <Label for="exampleCustomFileBrowser">Select File and Upload to get File Columns </Label>
+          <Label for="exampleCustomFileBrowser">Select File and Upload</Label>
           <CustomInput 
             type="file"
             id="exampleCustomFileBrowser" 
