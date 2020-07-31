@@ -435,6 +435,7 @@ async function readAndInsertData (index, file, column, res, userId, sendStream, 
   let batchCounter = 0;
   let documentId = 1;
   let regex;
+  let columnNumber;
 
   try {
     // fix separator
@@ -461,6 +462,11 @@ async function readAndInsertData (index, file, column, res, userId, sendStream, 
     .on('headers', (headers) => {
       headersToRem = headers;
       headerList = headersToRem[0].split(fileSeparator);
+      for(i=0;i<headerList.length;i++) {
+        if(headerList[i] === column) {
+          columnNumber = i;
+        }
+      }
     })
     .on('data', (row) => {
       if(row[headersToRem]){

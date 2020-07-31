@@ -20,7 +20,7 @@ services:
   
   api:
     container_name: node-react-api
-    image: nyuvis/ela-helper-web-app:1.0.2
+    image: nyuvis/ela-helper-web-app:1.0.3
     ports:
       - "3000:3000"
     restart: on-failure
@@ -87,5 +87,3 @@ services:
     command: python /app/texas/server/server.py
     ports:
       - $JUPYTER_PORT:8888
-
-  
