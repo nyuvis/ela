@@ -8,11 +8,12 @@ RUN npm install -g lerna forever
 WORKDIR /app
 COPY ./lerna.json ./lerna.json
 COPY ./package.json ./package.json
-COPY ./apps/texas-server/package.json ./apps/texas-server/package.json
-COPY ./apps/texas-cli/package.json ./apps/texas-cli/package.json
-COPY ./lib/texas-js/package.json ./lib/texas-js/package.json
-COPY ./lib/texas-utils/package.json ./lib/texas-utils/package.json
-COPY ./lib/texas-gql/package.json /app/lib/texas-gql/package.json
+COPY ./config ./config
+COPY ./apps/texas-server ./apps/texas-server
+COPY ./apps/texas-cli ./apps/texas-cli
+COPY ./lib/texas-js ./lib/texas-js
+COPY ./lib/texas-utils ./lib/texas-utils
+COPY ./lib/texas-gql ./lib/texas-gql
 
 RUN lerna bootstrap
 

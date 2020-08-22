@@ -5,6 +5,17 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install jupyter
 RUN python -m spacy download en_core_web_lg
 WORKDIR /app
+COPY ./api ./texas/api
+COPY ./clients ./texas/clients
+COPY ./datasets ./texas/datasets
+COPY ./ml ./texas/ml
+COPY ./processing ./texas/processing
+COPY ./resources ./texas/resources
+COPY ./server ./texas/server
+COPY ./__init__.py ./texas/__init__.py
+COPY ./store.py ./texas/store.py
+COPY ./utils.py ./texas/utils.py
+
 RUN pip install bs4
 RUN pip install iso-639
 RUN pip install langid
