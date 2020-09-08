@@ -475,11 +475,13 @@ async function readAndInsertData (index, file, column, res, userId, sendStream, 
         if(contentList.length != headerList.length){
           console.log("Format Errors in Data rows 1st Check");
           // handle errors due to comma inside double quotes
-          let rowContent = row[headersToRem];
-          let rowContentWithoutComma = rowContent.replace(/(?<=\,").+?(?=\",\S)/g, function(v) { 
+          // Adding , to end to select last column values with regex
+          let rowContent = row[headersToRem] + ',test';
+          let rowContentWithoutComma = rowContent.replace(/(?<=\,").+?(?=\",[\S\r\n])/g, (v) => {
             return v.replace(/,/g, '');
           });
           let rowContentWithoutQuotes = rowContentWithoutComma.replace(/\"/g, '');
+          rowContentWithoutQuotes = rowContentWithoutQuotes.slice(0,-5);
           contentList = rowContentWithoutQuotes.split(regex);
         }
         // handle format Errors
@@ -494,8 +496,9 @@ async function readAndInsertData (index, file, column, res, userId, sendStream, 
               currentRowContent = rowsContent[i].split(regex);
               const record = {};
               record[headerList[columnNumber]]= currentRowContent[columnNumber];
-              // creating list of list of rows content
-              pythonScriptInput.push(currentRowContent[columnNumber].toLowerCase());
+              if(currentRowContent && currentRowContent[columnNumber] ) {
+                  pythonScriptInput.push(currentRowContent[columnNumber].toLowerCase());
+              }
               documentIdList.push(documentId);
               documentId += 1;
               csvData.push(record);
@@ -511,7 +514,9 @@ async function readAndInsertData (index, file, column, res, userId, sendStream, 
           const record = {};
           record[headerList[columnNumber]]= contentList[columnNumber];
           // creating list of list of rows content
-          pythonScriptInput.push(contentList[columnNumber].toLowerCase());
+          if(contentList[columnNumber]) {
+            pythonScriptInput.push(contentList[columnNumber].toLowerCase());
+          }
           documentIdList.push(documentId);
           documentId += 1;
           csvData.push(record);
@@ -526,7 +531,7 @@ async function readAndInsertData (index, file, column, res, userId, sendStream, 
         console.log("Missing Headers in the row");
       }
     })
-    .on('end', () =>{
+    .on('end', () => {
       // Insert the last rows which are less than 500
       insertDataIntoES(csvData, index, 'doc',column, batchCounter);
       // Calling python script with data

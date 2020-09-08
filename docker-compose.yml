@@ -10,6 +10,7 @@ services:
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - discovery.type=single-node
+      - xpack.security.enabled=false
     ulimits:
       memlock:
         soft: -1
@@ -17,10 +18,10 @@ services:
     ports:
       - "9300:9300"
       - "9200:9200"
-  
+
   api:
     container_name: node-react-api
-    image: nyuvis/ela-helper-web-app:1.0.3
+    image: nyuvis/ela-helper-web-app:1.0.4
     ports:
       - "3000:3000"
     restart: on-failure
@@ -31,11 +32,11 @@ services:
     tty: true
     command: npm run start
     environment:
-     - NODE_ENV=local
-     - DOC_FOLDER_NAME=nlpData
-     - TOPICS_FOLDER=projections
-     - ES_HOST=elasticsearch
-     - PORT=3000
+      - NODE_ENV=local
+      - DOC_FOLDER_NAME=nlpData
+      - TOPICS_FOLDER=projections
+      - ES_HOST=elasticsearch
+      - PORT=3000
     depends_on: 
       - texas-api
 
