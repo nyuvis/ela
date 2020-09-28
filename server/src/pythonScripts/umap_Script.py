@@ -17,26 +17,39 @@ class Umap_to_csv(object):
     self.model = gensim.models.doc2vec.Doc2Vec.load(path+'/'+docFolderName+'/'+collectionName+'/models/Doc2vec_Model')
     self.input_list_of_documents = input_list_of_documents
     self.document_id_list = document_id_list
+    self.cleanedInput = []
+    self.docID_list = []
+  
+  def clean_input_list_documents(self):
+    for doc_id, row in zip(self.document_id_list, self.input_list_of_documents):
+      if len(row):
+        self.cleanedInput.append(row)
+        self.docID_list.append(doc_id)
+
 
   def infer_vectors_for_documents(self):
     print('Infer vectors for list of input documents')
     self.doc_vectors = []
-    for doc in self.input_list_of_documents:
+    for doc in self.cleanedInput:
       # infer_vector takes doc as list of words form as input doc
       self.doc_vectors.append(self.model.infer_vector(doc))
   
 
   def create_projections(self):
     print('Creating Projections vectors')
-    self.projection = umap.UMAP().fit_transform(self.doc_vectors)
+    try:
+      self.projection = umap.UMAP().fit_transform(self.doc_vectors)
+    except Exception as e:
+      print(e)
+      raise e
 
   def saving_projection(self, path, collectionName, docFolderName):
     print('Saving projections to csv')
     with open(path+'/'+docFolderName+'/'+collectionName+'/projections/umap_proj.csv','w', newline='') as out:
       csv_out=csv.writer(out)
-      if len(self.document_id_list) == len(self.projection):
+      if len(self.docID_list) == len(self.projection):
         csv_out.writerow(("doc_id","x", "y"))
-        for doc_id, row in zip(self.document_id_list, self.projection):
+        for doc_id, row in zip(self.docID_list, self.projection):
           csv_out.writerow((doc_id,row[0], row[1]))
       else:
         raise ValueError
@@ -71,6 +84,9 @@ if __name__ == "__main__":
 
     # list_of_list_of_vectors is [['0.03443343',..], ['-0.3343',...],....] type input
     umap_to_csv_obj = Umap_to_csv(doc2Vec_model_Name, list_of_list_of_words, document_id_list, path,  collectionName, docFolderName)
+
+    # cleam input list
+    umap_to_csv_obj.clean_input_list_documents()
 
     # infer vectors of documents
     umap_to_csv_obj.infer_vectors_for_documents()

@@ -424,9 +424,7 @@ async function updateDataIntoES(csvData, index, type) {
   }
 }
 
-
-// Clear the ES index, parse and index all files from the book directory
-async function readAndInsertData (index, file, column, res, userId, sendStream, stopwordlist) {
+async function parse_CSV_File(index, file, column, res, userId, sendStream, stopwordlist) {
   let csvData = [];
   let pythonScriptInput = [];
   let documentIdList = [];
@@ -434,22 +432,10 @@ async function readAndInsertData (index, file, column, res, userId, sendStream, 
   let headerList;
   let batchCounter = 0;
   let documentId = 1;
-  let regex;
   let columnNumber;
+  let invalidRowsCount = 0;
 
   try {
-    // fix separator
-      let fileSeparator;
-      if (file.originalname.includes(".csv")) {
-        fileSeparator = ',';
-        regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
-      } else if (file.originalname.includes(".tsv")) {
-        fileSeparator = '\t';
-        regex = fileSeparator;
-      } else if (file.originalname.includes(".psv")) {
-        fileSeparator = '|';
-        regex = fileSeparator;
-      }
     //Clear previous index
     await esConnection.resetIndex(index, 'doc', stopwordlist);
 
@@ -461,7 +447,149 @@ async function readAndInsertData (index, file, column, res, userId, sendStream, 
     .pipe(csv({ separator: '\n'}))
     .on('headers', (headers) => {
       headersToRem = headers;
-      headerList = headersToRem[0].split(fileSeparator);
+      headerList = headersToRem[0].split(',');
+      for(i=0;i<headerList.length;i++) {
+        if(headerList[i] === column) {
+          columnNumber = i;
+        }
+      }
+    })
+    .on('data', (row) => {
+      if(row[headersToRem]){
+        // Fixing separator
+        let regex = '(*|*)'
+        let rowContent = row[headersToRem] + 'test';
+        let rowContentWithoutCommaSeparator = rowContent.replace(/[\S],+[\S\r\n]/g, (v) => {
+          return v.replace(/,/g, regex);
+        });
+        rowContentWithoutCommaSeparator = rowContentWithoutCommaSeparator.slice(0, -4);
+        contentList = rowContentWithoutCommaSeparator.split(regex);
+
+        // handle format Errors for missing carriage return
+        if(contentList.length != headerList.length) {  // Check 1
+          // Add another test for rectifying above condition
+          let rowContent = row[headersToRem] + ',test';
+          let rowContentWithoutComma = rowContent.replace(/(?<=\,").+?(?=\",[\S\r\n])/g, (v) => {
+            return v.replace(/,/g, '');
+          });
+          rowContentWithoutComma = rowContentWithoutComma.slice(0,-5);
+          contentList = rowContentWithoutComma.split(',');
+
+          if(contentList.length != headerList.length) {  // Check 2
+            let rowContent = row[headersToRem];
+            if (rowContent.indexOf('\r\n')>=0) {
+              console.log("index of \r \n is : "+ rowContent.indexOf('\r\n'))
+              console.log("Error check for missing carriage return");
+              let rowsContent = rowContent.split('\r\n');
+              for(let i=0; i < rowsContent.length;i++){
+                let regex1 = '(*|*)'
+                let rowContent = rowsContent[i] + 'test';
+                let rowContentWithoutComma = rowContent.replace(/(?<=\,").+?(?=\",[\S\r\n])/g, (v) => {
+                  return v.replace(/,/g, '');
+                });
+                let rowContentWithoutCommaSeparator = rowContentWithoutComma.replace(/[\S],+[\S\r\n]/g, (v) => {
+                  return v.replace(/,/g, regex1);
+                });
+                rowContentWithoutCommaSeparator = rowContentWithoutCommaSeparator.slice(0, -4);
+                currentRowContent = rowContentWithoutCommaSeparator.split(regex1);
+                const record = {};
+                record[headerList[columnNumber]]= currentRowContent[columnNumber];
+                if(currentRowContent && currentRowContent[columnNumber] ) {
+                    // write csv row and update doc id
+                    pythonScriptInput.push(currentRowContent[columnNumber].toLowerCase());
+                    documentIdList.push(documentId);
+                    documentId += 1;
+                    csvData.push(record);
+                }
+                if(csvData.length >= 500) {
+                  // insert 500 rows to elastic Search
+                  insertDataIntoES(csvData, index, 'doc',column, batchCounter);
+                  batchCounter += 1;
+                  csvData = [];
+                }
+              }
+            } else {
+              console.log("Skipping improper Row data")
+              invalidRowsCount += 1;
+            }
+          } else {
+            const record = {};
+            record[headerList[columnNumber]]= contentList[columnNumber];
+            // creating list of list of rows content
+            if(contentList[columnNumber]) {
+              pythonScriptInput.push(contentList[columnNumber].toLowerCase());
+              documentIdList.push(documentId);
+              documentId += 1;
+              csvData.push(record);
+            }
+            if(csvData.length >= 500) {
+              // insert 500 rows to elastic Search
+              insertDataIntoES(csvData, index, 'doc',column, batchCounter);
+              batchCounter += 1;
+              csvData = [];
+            }
+          }
+        } else {
+          const record = {};
+          record[headerList[columnNumber]]= contentList[columnNumber];
+          // creating list of list of rows content
+          if(contentList[columnNumber]) {
+            pythonScriptInput.push(contentList[columnNumber].toLowerCase());
+            documentIdList.push(documentId);
+            documentId += 1;
+            csvData.push(record);
+          }
+          if(csvData.length >= 500) {
+            // insert 500 rows to elastic Search
+            insertDataIntoES(csvData, index, 'doc',column, batchCounter);
+            batchCounter += 1;
+            csvData = [];
+          }
+        }
+      } else {
+        console.log("Missing Headers in the row");
+      }
+    })
+    .on('end', () => {
+      // Insert the last rows which are less than 500
+      insertDataIntoES(csvData, index, 'doc',column, batchCounter);
+      // Calling python script with data
+      console.log("Total valid rows: " + documentIdList.length);
+      console.log("Total Invalid rows: " + invalidRowsCount);
+      callPythonScripts(pythonScriptInput, index, documentIdList, userId, sendStream, stopwordlist);
+      res.json({
+        status: "success",
+        message: "Collection Build Successful..!"
+      });
+    })
+  } catch(err) {
+    console.error(err);
+  }
+}
+
+async function parse_TSV_PSV_File(index, file, column, res, userId, sendStream, stopwordlist, regex) {
+  let csvData = [];
+  let pythonScriptInput = [];
+  let documentIdList = [];
+  let headersToRem;
+  let headerList;
+  let batchCounter = 0;
+  let documentId = 1;
+  let columnNumber;
+
+  try {
+    //Clear previous index
+    await esConnection.resetIndex(index, 'doc', stopwordlist);
+
+    // Read selected column record from filePath, and index each record in elasticsearch
+    streamifier.createReadStream(file.buffer)
+    .on('error', () => {
+      console.log("file not present")
+    })
+    .pipe(csv({ separator: '\n'}))
+    .on('headers', (headers) => {
+      headersToRem = headers;
+      headerList = headersToRem[0].split(regex);
       for(i=0;i<headerList.length;i++) {
         if(headerList[i] === column) {
           columnNumber = i;
@@ -471,61 +599,20 @@ async function readAndInsertData (index, file, column, res, userId, sendStream, 
     .on('data', (row) => {
       if(row[headersToRem]){
         let contentList = row[headersToRem].split(regex);
-        // handle format Errors in row
-        if(contentList.length != headerList.length){
-          console.log("Format Errors in Data rows 1st Check");
-          // handle errors due to comma inside double quotes
-          // Adding , to end to select last column values with regex
-          let rowContent = row[headersToRem] + ',test';
-          let rowContentWithoutComma = rowContent.replace(/(?<=\,").+?(?=\",[\S\r\n])/g, (v) => {
-            return v.replace(/,/g, '');
-          });
-          let rowContentWithoutQuotes = rowContentWithoutComma.replace(/\"/g, '');
-          rowContentWithoutQuotes = rowContentWithoutQuotes.slice(0,-5);
-          contentList = rowContentWithoutQuotes.split(regex);
-        }
-        // handle format Errors
-        if(contentList.length != headerList.length){
-          // still the content list is bigger means unhandled by regex defined above or missing newline carriage return on lines
-          // means there are multiple record in one line
-          console.log("Format Errors in Data rows 2nd Check");
-          let rowContent = row[headersToRem];
-          if (rowContent.indexOf('\r\n')) {
-            let rowsContent = rowContent.split('\r\n');
-            for(let i=0; i < rowsContent.length;i++){
-              currentRowContent = rowsContent[i].split(regex);
-              const record = {};
-              record[headerList[columnNumber]]= currentRowContent[columnNumber];
-              if(currentRowContent && currentRowContent[columnNumber] ) {
-                  pythonScriptInput.push(currentRowContent[columnNumber].toLowerCase());
-              }
-              documentIdList.push(documentId);
-              documentId += 1;
-              csvData.push(record);
-              if(csvData.length >= 500) {
-                // insert 500 rows to elastic Search
-                insertDataIntoES(csvData, index, 'doc',column, batchCounter);
-                batchCounter += 1;
-                csvData = [];
-              }
-            }
-          }
-        } else {
-          const record = {};
-          record[headerList[columnNumber]]= contentList[columnNumber];
-          // creating list of list of rows content
-          if(contentList[columnNumber]) {
-            pythonScriptInput.push(contentList[columnNumber].toLowerCase());
-          }
+        const record = {};
+        record[headerList[columnNumber]]= contentList[columnNumber];
+        // creating list of list of rows content
+        if(contentList[columnNumber]) {
+          pythonScriptInput.push(contentList[columnNumber].toLowerCase());
           documentIdList.push(documentId);
           documentId += 1;
           csvData.push(record);
-          if(csvData.length >= 500) {
-            // insert 500 rows to elastic Search
-            insertDataIntoES(csvData, index, 'doc',column, batchCounter);
-            batchCounter += 1;
-            csvData = [];
-          }
+        }
+        if(csvData.length >= 500) {
+          // insert 500 rows to elastic Search
+          insertDataIntoES(csvData, index, 'doc',column, batchCounter);
+          batchCounter += 1;
+          csvData = [];
         }
       } else {
         console.log("Missing Headers in the row");
@@ -543,6 +630,28 @@ async function readAndInsertData (index, file, column, res, userId, sendStream, 
     })
   } catch(err) {
     console.error(err);
+  }
+}
+
+async function parse_JSON_File(index, file, column, res, userId, sendStream, stopwordlist) {
+  // To do
+  console.log("Under Progress")
+}
+
+async function readAndInsertData (index, file, column, res, userId, sendStream, stopwordlist) {
+  try {
+    if (file.originalname.includes(".csv")) {
+      parse_CSV_File(index, file, column, res, userId, sendStream, stopwordlist)
+    } else if (file.originalname.includes(".tsv")) {
+      parse_TSV_PSV_File(index, file, column, res, userId, sendStream, stopwordlist, '\t')
+    } else if (file.originalname.includes(".psv")) {
+      parse_TSV_PSV_File(index, file, column, res, userId, sendStream, stopwordlist, '|')
+    } else if (file.originalname.includes(".json")) {
+      parseJSONFile(index, file, column, res, userId, sendStream, stopwordlist)
+    } 
+  } catch (error) {
+    console.log("Error in parsing file extension")
+    console.log(error)
   }
 }
 

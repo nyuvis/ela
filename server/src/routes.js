@@ -103,18 +103,22 @@ router.post('/previewData', upload.single('file'), (req, res, next) => {
   let headersToRem;
   let headerList;
   let regex;
+  let columnNumber;
+  let fileType;
 
   try {
     let fileSeparator;
     if (req.file.originalname.includes(".csv")) {
       fileSeparator = ',';
-      regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
+      fileType = 'csv';
     } else if (req.file.originalname.includes(".tsv")) {
       fileSeparator = '\t';
       regex = fileSeparator;
+      fileType = 'tsv';
     } else if (req.file.originalname.includes(".psv")) {
       fileSeparator = '|';
       regex = fileSeparator;
+      fileType = 'psv';
     }
     const file = req.file.buffer;
     const column = req.body.column;
@@ -127,17 +131,30 @@ router.post('/previewData', upload.single('file'), (req, res, next) => {
     .on('headers', (headers) => {
       headersToRem = headers;
       headerList = headersToRem[0].split(fileSeparator);
+      for(i=0;i<headerList.length;i++) {
+        if(headerList[i] === column) {
+          columnNumber = i;
+        }
+      }
     })
     .on('data', (row) => {
       if((csvData.length <= 49) && row[headersToRem]){
-        const contentList = row[headersToRem].split(regex);
-        const record = {};
-        for(i=0;i<headerList.length;i++) {
-          if(headerList[i] === column) {
-            record[headerList[i]]= contentList[i];
-          }
+        if( fileType == 'csv') {
+          let regex1 = '(*|*)'
+          let rowContent = row[headersToRem];
+          let rowContentWithoutCommaSeparator = rowContent.replace(/[\S],+[\S\r\n]/g, (v) => {
+            return v.replace(/,/g, regex1);
+          });
+          contentList = rowContentWithoutCommaSeparator.split(regex1);
+          const record = {};
+          record[headerList[columnNumber]]= contentList[columnNumber];
+          csvData.push(record);
+        } else {
+          const contentList = row[headersToRem].split(regex);
+          const record = {};
+          record[headerList[columnNumber]]= contentList[columnNumber];
+          csvData.push(record);
         }
-        csvData.push(record);
       }
     })
     .on('end', () =>{
